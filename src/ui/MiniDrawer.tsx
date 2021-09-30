@@ -20,6 +20,7 @@ import Routes from "../routes";
 import {Link as RouterLink, LinkProps as RouterLinkProps, Route, Switch} from "react-router-dom";
 import {Counter} from "../features/counter/Counter";
 import {ChevronLeft, ChevronRight} from "@mui/icons-material";
+import {MonitoringGrid} from "../features/monitoring-grid/Overview";
 
 
 const drawerWidth = 240;
@@ -127,7 +128,7 @@ function MiniDrawer() {
 
 
 	return (
-		<Box sx={{ display: 'flex' }}>
+		<Box sx={{ display: 'flex', width: '100%', height: '100%' }}>
 			<CssBaseline />
 			<AppBar position="fixed" open={open}>
 				<Toolbar>
@@ -153,13 +154,19 @@ function MiniDrawer() {
 					))}
 				</List>
 			</Drawer>
-			<Box component="main" sx={{ flexGrow: 1, p:3 }}>
+			<Box component="main" sx={{ flexGrow: 1 }} >
 				<DrawerHeader />
-				<Switch>
-					<Route path="/monitoring">
-						<Counter />
-					</Route>
-				</Switch>
+				<div>
+					{/* A <Switch> renders the first <Route> that matches the current URL */}
+					<Switch>
+						<Route path="/monitoring">
+							<MonitoringGrid />
+						</Route>
+						<Route path="/">
+							<Counter />
+						</Route>
+					</Switch>
+				</div>
 			</Box>
 		</Box>
 	);
