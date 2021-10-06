@@ -128,7 +128,7 @@ function MiniDrawer() {
 
 
 	return (
-		<Box sx={{ display: 'flex', width: '100%', height: '100%' }}>
+		<Box sx={{ display: 'flex', width: '100%', height: '100%'}}>
 			<CssBaseline />
 			<AppBar position="fixed" open={open}>
 				<Toolbar>

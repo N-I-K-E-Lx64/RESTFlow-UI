@@ -1,6 +1,6 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import counterReducer from '../features/counter/counterSlice';
-import {websocketApi} from "../features/websocket/test";
+import {websocketApi} from "./service/websocketApi";
 
 export const store = configureStore({
   reducer: {

@@ -4,9 +4,6 @@ import MiniDrawer from "./ui/MiniDrawer";
 
 function App() {
 
-	//const {data, error, isLoading} = useGetMessagesQuery();
-	//console.log(data, error, isLoading);
-
 	return (
 		<div className="App">
 		    <header className="App-header">

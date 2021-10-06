@@ -9,6 +9,7 @@ import {
 } from "@mui/x-data-grid";
 import {Chip} from "@mui/material";
 import {Delete, Pause, PlayArrow} from "@mui/icons-material";
+import {MonitoringInstance, useGetMessagesQuery} from "../../app/service/websocketApi";
 
 enum WorkflowStatus {
 	INITIATED = "initiated",
@@ -18,12 +19,16 @@ enum WorkflowStatus {
 	COMPLETED = "completed"
 }
 
-const rows: GridRowModel[] = [
-	{id: 1, name: 'Test1', activity: 'TestActivity', status: WorkflowStatus.ACTIVE, lastStarted: Date.now()},
-	{id: 2, name: 'Test2', activity: 'TestActivity2', status: WorkflowStatus.SUSPENDED, lastStarted: Date.now()},
-];
-
 export function MonitoringGrid() {
+
+	const {data, isLoading} = useGetMessagesQuery();
+
+	let rows: GridRowModel[] = [];
+
+	if (typeof data !== "undefined" && isLoading === false) {
+		rows = data.map((instance: MonitoringInstance) => Object.assign({ id: instance.wfName}, instance));
+		console.log(rows);
+	}
 
 	const startWorkflow = useCallback((id: GridRowId) => () => {
 
@@ -38,20 +43,21 @@ export function MonitoringGrid() {
 	}, []);
 
 	const columns = useMemo(() => [
-			{field: 'name', type: 'string', flex: 1, minWidth: 100},
-			{field: 'activity', type: 'string', flex: 1, minWidth: 100},
+			{field: 'wfName', headerName: 'Workflow Name', type: 'string', flex: 1},
+			{field: 'currentActivity', headerName: 'Current Activity', type: 'string', flex: 1},
 			{
-				field: 'status', renderCell: (params: GridRenderCellParams) => (
+				field: 'wfStatus', headerName: 'Status', flex: 1, renderCell: (params: GridRenderCellParams) => (
 					<Chip
 						label={(params.value as WorkflowStatus)}
 					/>
 				),
 			},
-			{field: 'lastStarted', type: 'dateTime', width: 180 },
-			{field: 'lastModified', type: 'dateTime', width: 180 },
+			{field: 'startTime', headerName: 'Last Started', type: 'dateTime', flex: 1},
+			// {field: 'lastModified', type: 'dateTime', width: 180 },
 			{
 				field: 'actions',
 				type: 'actions',
+				minWidth: 120,
 				getActions: (params: GridRowParams) => [
 					<GridActionsCellItem
 						icon={ <PlayArrow/> }
@@ -72,10 +78,8 @@ export function MonitoringGrid() {
 	);
 
 	return (
-		<div style={{display: 'flex', width: '100%'}}>
-			<div style={{flexGrow: 1}}>
-				<DataGrid columns={columns} rows={rows} autoHeight autoPageSize checkboxSelection/>
-			</div>
+		<div style={{padding: '16px'}}>
+			<DataGrid columns={columns} rows={rows} autoHeight autoPageSize checkboxSelection/>
 		</div>
 	);
 }
