@@ -52,4 +52,4 @@ export const websocketApi = createApi({
 	}),
 });
 
-export const {useGetMessagesQuery} = websocketApi;
+export const { useGetMessagesQuery } = websocketApi;

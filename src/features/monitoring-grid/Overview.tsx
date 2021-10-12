@@ -4,11 +4,10 @@ import {
 	GridRenderCellParams,
 	GridRowModel,
 	GridActionsCellItem,
-	GridRowId,
-	GridRowParams
+	GridRowParams, GridRowId
 } from "@mui/x-data-grid";
-import {Chip} from "@mui/material";
-import {Delete, Pause, PlayArrow} from "@mui/icons-material";
+import {Chip, Snackbar} from "@mui/material";
+import {RestartAlt, StopOutlined} from "@mui/icons-material";
 import {MonitoringInstance, useGetMessagesQuery} from "../../app/service/websocketApi";
 
 enum WorkflowStatus {
@@ -20,27 +19,53 @@ enum WorkflowStatus {
 }
 
 export function MonitoringGrid() {
-
+	const [open, setOpen] = React.useState(false);
+	const [message, setMessage] = React.useState("");
 	const {data, isLoading} = useGetMessagesQuery();
 
-	let rows: GridRowModel[] = [];
+	const rows: GridRowModel[] = useMemo(() => {
+		console.log("Memo call");
+		if (typeof data !== "undefined" && isLoading === false) {
+			return data.map((instance: MonitoringInstance) => Object.assign({ id: instance.wfName}, instance));
+		} else {
+			return [];
+		}
+	}, [data, isLoading]);
 
-	if (typeof data !== "undefined" && isLoading === false) {
-		rows = data.map((instance: MonitoringInstance) => Object.assign({ id: instance.wfName}, instance));
-		console.log(rows);
+	const handleClose = (event: React.SyntheticEvent | React.MouseEvent, reason?: string) => {
+		if (reason === 'clickaway') return;
+
+		setOpen(false);
 	}
 
-	const startWorkflow = useCallback((id: GridRowId) => () => {
-
+	const restartWorkflow = useCallback((id: GridRowId) => () => {
+		sendCommand(id, "restart");
 	}, []);
 
-	const pauseWorkflow = useCallback((params: GridRowParams) => () => {
-		console.log(params.row);
+	const pauseWorkflow = useCallback((id: GridRowId) => () => {
+		sendCommand(id, "stop");
 	}, []);
 
-	const deleteWorkflow = useCallback((params) => () => {
+	const sendCommand = (id: GridRowId, command: string) => {
+		fetch(`http://localhost:8080/workflow/${command}/${id}`)
+			.then(response => response.text())
+			.then((message: string) => {
+				setMessage(message);
+				setOpen(true);
+			})
+	}
 
-	}, []);
+	/* const determineColor = (status: WorkflowStatus): ('primary' | 'warning' | 'error' | 'success' | 'default') => {
+		console.log(status);
+		switch (status) {
+			case WorkflowStatus.ACTIVE: return 'primary';
+			case WorkflowStatus.SUSPENDED: return 'warning';
+			case WorkflowStatus.TERMINATED: return 'error';
+			case WorkflowStatus.COMPLETED: return 'success';
+
+			default: return 'default';
+		}
+	} */
 
 	const columns = useMemo(() => [
 			{field: 'wfName', headerName: 'Workflow Name', type: 'string', flex: 1},
@@ -49,6 +74,7 @@ export function MonitoringGrid() {
 				field: 'wfStatus', headerName: 'Status', flex: 1, renderCell: (params: GridRenderCellParams) => (
 					<Chip
 						label={(params.value as WorkflowStatus)}
+						// color={determineColor(params.value as WorkflowStatus)}
 					/>
 				),
 			},
@@ -60,26 +86,23 @@ export function MonitoringGrid() {
 				minWidth: 120,
 				getActions: (params: GridRowParams) => [
 					<GridActionsCellItem
-						icon={ <PlayArrow/> }
-						label="Start Workflow"
-						onClick={startWorkflow(params.id)} />,
+						icon={ <RestartAlt/> }
+						label="Restart Workflow"
+						onClick={restartWorkflow(params.id)} />,
 					<GridActionsCellItem
-						icon={ <Pause/> }
+						icon={ <StopOutlined/> }
 						label="Pause Workflow"
-						onClick={pauseWorkflow(params)} />,
-					<GridActionsCellItem
-						icon={ <Delete/> }
-						label="DeleteWorkflow"
-						onClick={deleteWorkflow(params)} />
+						onClick={pauseWorkflow(params.id)} />,
 				],
 			},
 		],
-		[startWorkflow, pauseWorkflow, deleteWorkflow],
+		[restartWorkflow, pauseWorkflow],
 	);
 
 	return (
 		<div style={{padding: '16px'}}>
 			<DataGrid columns={columns} rows={rows} autoHeight autoPageSize checkboxSelection/>
+			<Snackbar open={open} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} autoHideDuration={6000} onClose={handleClose} message={message}/>
 		</div>
 	);
 }
