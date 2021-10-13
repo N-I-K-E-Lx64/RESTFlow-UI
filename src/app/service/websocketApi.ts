@@ -1,5 +1,5 @@
-import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import {Client} from "@stomp/stompjs";
+import {restflowAPI} from "./restflowAPI";
 
 export interface MonitoringInstance {
 	wfName: string;
@@ -8,9 +8,7 @@ export interface MonitoringInstance {
 	startTime: string;
 }
 
-export const websocketApi = createApi({
-
-	baseQuery: fetchBaseQuery({baseUrl: '/'}),
+const websocketApi = restflowAPI.injectEndpoints({
 	endpoints: (build) => ({
 		getMessages: build.query<MonitoringInstance[], void>({
 			// The query is not relevant here as the data will be provided via streaming updates.
@@ -24,7 +22,7 @@ export const websocketApi = createApi({
 				});
 
 				client.onConnect = () => {
-					client.subscribe('/topic/monitoring', message => {
+					client.subscribe('/topic/monitoring', (message) => {
 						const data: MonitoringInstance = JSON.parse(message.body);
 						// TODO : Message validation!
 						updateCachedData((draft) => {
@@ -50,6 +48,7 @@ export const websocketApi = createApi({
 			},
 		}),
 	}),
+	overrideExisting: false,
 });
 
 export const { useGetMessagesQuery } = websocketApi;

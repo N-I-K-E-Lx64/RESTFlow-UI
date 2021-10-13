@@ -1,14 +1,14 @@
 import {configureStore, ThunkAction, Action} from '@reduxjs/toolkit';
 import counterReducer from '../features/counter/counterSlice';
-import {websocketApi} from "./service/websocketApi";
+import {restflowAPI} from "./service/restflowAPI";
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
-    [websocketApi.reducerPath]: websocketApi.reducer,
+    [restflowAPI.reducerPath]: restflowAPI.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(websocketApi.middleware),
+      getDefaultMiddleware().concat(restflowAPI.middleware),
 });
 
 export type AppDispatch = typeof store.dispatch;

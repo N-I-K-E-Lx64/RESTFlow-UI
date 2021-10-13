@@ -21,6 +21,7 @@ import {Link as RouterLink, LinkProps as RouterLinkProps, Route, Switch} from "r
 import {Counter} from "../features/counter/Counter";
 import {ChevronLeft, ChevronRight} from "@mui/icons-material";
 import {MonitoringGrid} from "../features/monitoring-grid/Overview";
+import {UserInputTabs} from "../features/user-input/UserInputTabs";
 
 
 const drawerWidth = 240;
@@ -154,11 +155,14 @@ function MiniDrawer() {
 					))}
 				</List>
 			</Drawer>
-			<Box component="main" sx={{ flexGrow: 1 }} >
+			<Box component="main" sx={{ flexGrow: 1, paddingLeft: '16px', paddingRight: '16px' }} >
 				<DrawerHeader />
 				<div>
 					{/* A <Switch> renders the first <Route> that matches the current URL */}
 					<Switch>
+						<Route path="/user-input">
+							<UserInputTabs />
+						</Route>
 						<Route path="/monitoring">
 							<MonitoringGrid />
 						</Route>

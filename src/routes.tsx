@@ -1,4 +1,4 @@
-import {Dashboard, DeveloperBoard} from "@mui/icons-material";
+import {Dashboard, DeveloperBoard, ManageAccountsOutlined} from "@mui/icons-material";
 
 const Routes = [
 	{
@@ -10,6 +10,11 @@ const Routes = [
 		icon: <DeveloperBoard />,
 		primary: 'Monitoring',
 		to: '/monitoring',
+	},
+	{
+		icon: <ManageAccountsOutlined />,
+		primary: 'User Inputs',
+		to: '/user-input'
 	}
 ];
 
