@@ -15,6 +15,14 @@ export function UserInputTabs() {
 		setValue(newValue);
 	}
 
+	if (isLoading) {
+		return (
+			<Typography variant="h2" align="center">Loading ...</Typography>
+		);
+	}
+
+	// TODO : Display a message when no suspended workflow exist
+
 	return (
 		<Box sx={{ width: '100%' }}>
 			<Tabs value={value} onChange={handleChange} aria-label="Suspended Workflows">
@@ -26,10 +34,7 @@ export function UserInputTabs() {
 			<Route exact path={path}>
 				<Typography variant="h2" align="center">Please select a Workflow</Typography>
 			</Route>
-			<Route path={`${path}/:workflowId`}>
-				<UserInput />
-			</Route>
-
+			<Route path={`${path}/:instanceId`} component={UserInput} />
 		</Box>
 	);
 }
