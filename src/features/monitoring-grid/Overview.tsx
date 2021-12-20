@@ -6,7 +6,7 @@ import {
 	GridActionsCellItem,
 	GridRowParams, GridRowId
 } from "@mui/x-data-grid";
-import {Chip, Snackbar} from "@mui/material";
+import {Box, Chip, Snackbar} from "@mui/material";
 import {RestartAlt, StopOutlined} from "@mui/icons-material";
 import {MonitoringInstance, useGetMessagesQuery} from "../../app/service/websocketApi";
 
@@ -24,7 +24,7 @@ export function MonitoringGrid() {
 	const {data, isLoading} = useGetMessagesQuery();
 
 	const rows: GridRowModel[] = useMemo(() => {
-		console.log("Memo call");
+		console.log(data);
 		if (typeof data !== "undefined" && isLoading === false) {
 			return data.map((instance: MonitoringInstance) => Object.assign({ id: instance.wfName}, instance));
 		} else {
@@ -100,9 +100,9 @@ export function MonitoringGrid() {
 	);
 
 	return (
-		<div style={{padding: '16px'}}>
-			<DataGrid columns={columns} rows={rows} autoHeight autoPageSize checkboxSelection/>
+		<Box sx={{padding: '16px'}}>
+			<DataGrid columns={columns} rows={rows} autoHeight checkboxSelection/>
 			<Snackbar open={open} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} autoHideDuration={6000} onClose={handleClose} message={message}/>
-		</div>
+		</Box>
 	);
 }
