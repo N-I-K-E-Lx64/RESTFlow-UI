@@ -1,4 +1,5 @@
 import {Client} from "@stomp/stompjs";
+import {v4 as uuidv4} from "uuid";
 import {restflowAPI} from "./restflowAPI";
 
 export interface MonitoringInstance {
@@ -18,12 +19,25 @@ const websocketApi = restflowAPI.injectEndpoints({
 				const client = new Client();
 				client.configure({
 					brokerURL: 'ws://localhost:8080/restflow',
+					connectHeaders: {
+						login: uuidv4()
+					}
 					// debug: msg => console.log(msg),
 				});
 
 				client.onConnect = () => {
+					client.subscribe('/user/queue/monitoring', (message) => {
+						const data: MonitoringInstance = JSON.parse(message.body);
+
+						updateCachedData((draft) => {
+							// This cache update is only relevant when the client connects for the first time, so updates to existing data is unnecessary
+							draft.push(data);
+						})
+					});
+
 					client.subscribe('/topic/monitoring', (message) => {
 						const data: MonitoringInstance = JSON.parse(message.body);
+
 						// TODO : Message validation!
 						updateCachedData((draft) => {
 							// If state contains an element with the same identifier (workflow name) it must be updated!
@@ -37,6 +51,8 @@ const websocketApi = restflowAPI.injectEndpoints({
 							}
 						})
 					});
+
+					client.publish({ destination: "/app/reqMonitoring", body: "Hello Stomp" });
 				}
 
 				// Attempt to connect
@@ -48,7 +64,7 @@ const websocketApi = restflowAPI.injectEndpoints({
 			},
 		}),
 	}),
-	overrideExisting: false,
+	overrideExisting: true,
 });
 
 export const { useGetMessagesQuery } = websocketApi;

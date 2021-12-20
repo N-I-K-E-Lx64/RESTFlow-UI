@@ -3076,6 +3076,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/uuid@npm:^8.3.3":
+  version: 8.3.3
+  resolution: "@types/uuid@npm:8.3.3"
+  checksum: 3f340155bb1161f9ffa7163926d6222fea8f3505c23619b72bcc230883354926672c08a06510c7a543f73553c792a84444cc1744cff631b4ba988763e4bd7a8f
+  languageName: node
+  linkType: hard
+
 "@types/webpack-sources@npm:*":
   version: 3.2.0
   resolution: "@types/webpack-sources@npm:3.2.0"
@@ -3470,37 +3477,6 @@ __metadata:
   checksum: 8ed0d477ce3bc9c6fe2bf6a6a2cc316bb9c4127c5a7827bae947fa8ec34c7092395c5a283cc300c05b5fa01cbbfa1f938f410a7bf75db7c7846fea41949989ec
   languageName: node
   linkType: hard
-
-"RESTFlow-UI@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "RESTFlow-UI@workspace:."
-  dependencies:
-    "@emotion/react": ^11.6.0
-    "@emotion/styled": ^11.6.0
-    "@mui/icons-material": ^5.1.1
-    "@mui/material": ^5.1.1
-    "@mui/styles": ^5.1.1
-    "@mui/x-data-grid": ^5.0.1
-    "@reduxjs/toolkit": ^1.6.2
-    "@stomp/stompjs": ^6.1.2
-    "@testing-library/jest-dom": ^5.15.0
-    "@testing-library/react": ^12.1.2
-    "@testing-library/user-event": ^13.5.0
-    "@types/jest": ^27.0.3
-    "@types/node": ^16.11.9
-    "@types/react": ^17.0.36
-    "@types/react-dom": ^17.0.11
-    "@types/react-redux": ^7.1.20
-    "@types/react-router-dom": ^5.3.2
-    react: ^17.0.2
-    react-dom: ^17.0.2
-    react-hook-form: ^7.20.2
-    react-redux: ^7.2.6
-    react-router-dom: ^6.0.2
-    react-scripts: 4.0.3
-    typescript: ~4.5.2
-  languageName: unknown
-  linkType: soft
 
 "abab@npm:^2.0.3, abab@npm:^2.0.5":
   version: 2.0.5
@@ -13459,6 +13435,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"restflow-ui@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "restflow-ui@workspace:."
+  dependencies:
+    "@emotion/react": ^11.6.0
+    "@emotion/styled": ^11.6.0
+    "@mui/icons-material": ^5.1.1
+    "@mui/material": ^5.1.1
+    "@mui/styles": ^5.1.1
+    "@mui/x-data-grid": ^5.0.1
+    "@reduxjs/toolkit": ^1.6.2
+    "@stomp/stompjs": ^6.1.2
+    "@testing-library/jest-dom": ^5.15.0
+    "@testing-library/react": ^12.1.2
+    "@testing-library/user-event": ^13.5.0
+    "@types/jest": ^27.0.3
+    "@types/node": ^16.11.9
+    "@types/react": ^17.0.36
+    "@types/react-dom": ^17.0.11
+    "@types/react-redux": ^7.1.20
+    "@types/react-router-dom": ^5.3.2
+    "@types/uuid": ^8.3.3
+    react: ^17.0.2
+    react-dom: ^17.0.2
+    react-hook-form: ^7.20.2
+    react-redux: ^7.2.6
+    react-router-dom: ^6.0.2
+    react-scripts: 4.0.3
+    typescript: ~4.5.2
+    uuid: ^8.3.2
+  languageName: unknown
+  linkType: soft
+
 "ret@npm:~0.1.10":
   version: 0.1.15
   resolution: "ret@npm:0.1.15"
@@ -15442,7 +15451,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^8.3.0":
+"uuid@npm:^8.3.0, uuid@npm:^8.3.2":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
   bin:

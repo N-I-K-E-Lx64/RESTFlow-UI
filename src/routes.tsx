@@ -1,6 +1,13 @@
 import {Dashboard, DeveloperBoard, ManageAccountsOutlined} from "@mui/icons-material";
+import {ReactElement} from "react";
 
-const Routes = [
+export interface ListItemLinkProps {
+	icon?: ReactElement;
+	primary: string;
+	to: string;
+}
+
+const Routes: ListItemLinkProps[] = [
 	{
 		icon: <Dashboard />,
 		primary: 'Dashboard',

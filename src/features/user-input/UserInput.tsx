@@ -16,18 +16,19 @@ import {useParams} from "react-router-dom";
 import {TopicOutlined} from "@mui/icons-material";
 import {Controller, SubmitHandler, useFieldArray, useForm} from "react-hook-form";
 import React, {useEffect} from "react";
+import assert from "assert";
 
 export function UserInput() {
-	const { instanceId } = useParams<{ instanceId: string }>();
+	const { instanceId } = useParams();
+	assert(instanceId !== undefined);
+
 	const {data: variables, isLoading: isLoadingVariables } = useGetVariablesQuery(instanceId);
 	const {data: userParams, isLoading: isLoadingUserParams } = useGetUserParamsQuery(instanceId);
 
-	const [ updateUserParam, { isLoading: isUpdating }] = useUpdateUserParamMutation();
+	const [updateUserParam] = useUpdateUserParamMutation();
 
 	const {control, handleSubmit} = useForm();
-	const {fields, append, remove} = useFieldArray({control, name: 'params'});
-
-	console.log(variables);
+	const {fields, append} = useFieldArray({control, name: 'params'});
 
 	useEffect(() => {
 		console.log(userParams);
@@ -74,9 +75,8 @@ export function UserInput() {
 							}
 						/>
 					))}
+					<Button variant="contained" type="submit" color="primary">Send</Button>
 				</Stack>
-
-				<Button variant="contained" type="submit" color="primary">Send</Button>
 			</Box>
 			<Box sx={{ flexGrow: 1, padding: "8px" }}>
 				<Grid container spacing={2}>
@@ -92,7 +92,7 @@ export function UserInput() {
 									title={prop.name}
 									subheader={prop.type + " -Variable"} />
 								<CardContent>
-									{ prop.value !== null &&
+									{ prop.value !== "null" &&
 										<Typography variant="body2" color="text.secondary">prop.value</Typography>
 									}
 								</CardContent>

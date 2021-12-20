@@ -1,14 +1,15 @@
 import React from 'react';
 import './App.css';
 import MiniDrawer from "./ui/MiniDrawer";
+import ClippedDrawer from "./ui/ClippedDrawer";
 
 function App() {
 
 	return (
-		<div>
+		<div className="App">
 		    <header>
-			  {/* <img src={logo} className="App-logo" alt="logo" /> */}
-				<MiniDrawer />
+			    {/* <MiniDrawer /> */}
+			    <ClippedDrawer />
 		    </header>
 		</div>
 	);

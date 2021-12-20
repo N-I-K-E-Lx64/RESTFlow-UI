@@ -17,31 +17,16 @@ import MuiAppBar, {AppBarProps as MuiAppBarProps} from "@mui/material/AppBar";
 
 import MenuIcon from "@mui/icons-material/Menu";
 import Routes from "../routes";
-import {Link as RouterLink, LinkProps as RouterLinkProps, Route, Switch} from "react-router-dom";
-import {Counter} from "../features/counter/Counter";
+import {Link as RouterLink, LinkProps as RouterLinkProps, Outlet} from "react-router-dom";
 import {ChevronLeft, ChevronRight} from "@mui/icons-material";
-import {MonitoringGrid} from "../features/monitoring-grid/Overview";
-import {UserInputTabs} from "../features/user-input/UserInputTabs";
-
 
 const drawerWidth = 240;
-
-interface AppBarProps extends MuiAppBarProps {
-	open?: boolean;
-}
-
-export interface ListItemLinkProps {
-	icon: ReactElement;
-	primary: string;
-	to: string;
-	key: number;
-}
 
 const openedMixin = (theme: Theme): CSSObject => ({
 	width: drawerWidth,
 	transition: theme.transitions.create('width', {
 		easing: theme.transitions.easing.sharp,
-		duration: theme.transitions.duration.enteringScreen
+		duration: theme.transitions.duration.enteringScreen,
 	}),
 	overflowX: 'hidden',
 });
@@ -54,7 +39,7 @@ const closedMixin = (theme: Theme): CSSObject => ({
 	overflowX: 'hidden',
 	width: `calc(${theme.spacing(7)} + 1px)`,
 	[theme.breakpoints.up('sm')]: {
-		width: `calc(${theme.spacing(9)} + 1px)`
+		width: `calc(${theme.spacing(9)} + 1px)`,
 	},
 });
 
@@ -63,8 +48,13 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 	alignItems: 'center',
 	justifyContent: 'flex-end',
 	padding: theme.spacing(0, 1),
+	// necessary for content to be below app bar
 	...theme.mixins.toolbar,
 }));
+
+interface AppBarProps extends MuiAppBarProps {
+	open?: boolean;
+}
 
 const AppBar = styled(MuiAppBar, {
 	shouldForwardProp: (prop) => prop !== 'open',
@@ -101,8 +91,14 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 	}),
 );
 
+interface ListItemLinkProps {
+	icon?: ReactElement;
+	primary: string;
+	to: string;
+}
+
 function ListItemLink(props: ListItemLinkProps) {
-	const { icon, primary, to, key } = props;
+	const { icon, primary, to } = props;
 
 	const renderLink = useMemo(() => forwardRef<HTMLAnchorElement, Omit<RouterLinkProps, 'to'>>(
 		function Link (itemProps, ref) {
@@ -112,15 +108,16 @@ function ListItemLink(props: ListItemLinkProps) {
 		);
 
 	return (
-		<ListItem button key={key} component={renderLink}>
-			{icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
-			<ListItemText primary={primary} />
-		</ListItem>
+		<li>
+			<ListItem button component={renderLink} key={primary}>
+				{icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
+				<ListItemText primary={primary} />
+			</ListItem>
+		</li>
 	);
 }
 
-function MiniDrawer() {
-
+export default function MiniDrawer() {
 	const theme = useTheme();
 	const [open, setOpen] = useState(false);
 
@@ -129,7 +126,7 @@ function MiniDrawer() {
 
 
 	return (
-		<Box sx={{ display: 'flex', width: '100%', height: '100%'}}>
+		<Box sx={{ display: 'flex' }}>
 			<CssBaseline />
 			<AppBar position="fixed" open={open}>
 				<Toolbar>
@@ -155,25 +152,13 @@ function MiniDrawer() {
 					))}
 				</List>
 			</Drawer>
+
 			<Box component="main" sx={{ flexGrow: 1, paddingLeft: '16px', paddingRight: '16px' }} >
 				<DrawerHeader />
-				<div>
-					{/* A <Switch> renders the first <Route> that matches the current URL */}
-					<Switch>
-						<Route path="/user-input">
-							<UserInputTabs />
-						</Route>
-						<Route path="/monitoring">
-							<MonitoringGrid />
-						</Route>
-						<Route path="/">
-							<Counter />
-						</Route>
-					</Switch>
-				</div>
+				<Box>
+					<Outlet />
+				</Box>
 			</Box>
 		</Box>
 	);
 }
-
-export default MiniDrawer;

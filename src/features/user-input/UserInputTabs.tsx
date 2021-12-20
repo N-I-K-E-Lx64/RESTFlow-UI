@@ -1,19 +1,22 @@
 import {Box, Tab, Tabs, Typography} from "@mui/material";
-import React, {SyntheticEvent, useState} from "react";
+import React, {SyntheticEvent, useEffect, useState} from "react";
 import {useGetSuspendedWorkflowsQuery} from "./userVariableApi";
-import {Link, Route, useRouteMatch} from "react-router-dom";
-import {UserInput} from "./UserInput";
+import {Link, Outlet, useNavigate} from "react-router-dom";
 
 export function UserInputTabs() {
 	const { data, isLoading } = useGetSuspendedWorkflowsQuery();
+	const navigate = useNavigate();
 
-	const [value, setValue] = useState(0);
-
-	let { path, url } = useRouteMatch();
+	const [currentTab, setCurrentTab] = useState(0);
 
 	const handleChange = (event: SyntheticEvent, newValue: number) => {
-		setValue(newValue);
-	}
+		setCurrentTab(newValue);
+	};
+
+	// When the user navigates to this the first tab should be selected by default
+	useEffect(() => {
+		if (!isLoading && typeof data !== "undefined") navigate(data[0])
+	}, [data, isLoading]);
 
 	if (isLoading) {
 		return (
@@ -25,16 +28,13 @@ export function UserInputTabs() {
 
 	return (
 		<Box sx={{ width: '100%' }}>
-			<Tabs value={value} onChange={handleChange} aria-label="Suspended Workflows">
+			<Tabs value={currentTab} onChange={handleChange} aria-label="Suspended Workflows" selectionFollowsFocus>
 				{ data?.map((prop, index) => (
-					<Tab label={prop} value={index} to={`${url}/${prop}`} component={Link} />
+					<Tab label={prop} value={index} to={`${prop}`} component={Link} key={index} />
 				))}
 			</Tabs>
 
-			<Route exact path={path}>
-				<Typography variant="h2" align="center">Please select a Workflow</Typography>
-			</Route>
-			<Route path={`${path}/:instanceId`} component={UserInput} />
+			<Outlet />
 		</Box>
 	);
 }
