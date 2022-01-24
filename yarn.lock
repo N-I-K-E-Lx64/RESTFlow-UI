@@ -2901,6 +2901,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash.throttle@npm:^4.1.6":
+  version: 4.1.6
+  resolution: "@types/lodash.throttle@npm:4.1.6"
+  dependencies:
+    "@types/lodash": "*"
+  checksum: 8bc6e253c2365a03d7e2a36ef59ca0556ca51ab1a878cd4071b54874eaf75c564ae86b62661780a5d23dd532dbad81f685d25ae5450049a32fb4c968c94dd688
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*":
+  version: 4.14.178
+  resolution: "@types/lodash@npm:4.14.178"
+  checksum: a69a04a60bfc5257c3130a554b4efa0c383f0141b7b3db8ab7cf07ad2a46ea085fce66d0242da41da7e5647b133d5dfb2c15add9cbed8d7fef955e4a1e5b3128
+  languageName: node
+  linkType: hard
+
 "@types/minimatch@npm:*":
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
@@ -9894,6 +9910,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"konva@npm:^8.3.2":
+  version: 8.3.2
+  resolution: "konva@npm:8.3.2"
+  checksum: ade211910fed4bb1da0d8f3b36f82531d1f1557bc6da2471a7f0ea1946a8dc40623ed795924bf09a8c4ef458f3c4bfb48124481506bc5a3a03ff14505f405188
+  languageName: node
+  linkType: hard
+
 "language-subtag-registry@npm:~0.3.2":
   version: 0.3.21
   resolution: "language-subtag-registry@npm:0.3.21"
@@ -10078,6 +10101,13 @@ __metadata:
   dependencies:
     lodash._reinterpolate: ^3.0.0
   checksum: 863e025478b092997e11a04e9d9e735875eeff1ffcd6c61742aa8272e3c2cddc89ce795eb9726c4e74cef5991f722897ff37df7738a125895f23fc7d12a7bb59
+  languageName: node
+  linkType: hard
+
+"lodash.throttle@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "lodash.throttle@npm:4.1.1"
+  checksum: 129c0a28cee48b348aef146f638ef8a8b197944d4e9ec26c1890c19d9bf5a5690fe11b655c77a4551268819b32d27f4206343e30c78961f60b561b8608c8c805
   languageName: node
   linkType: hard
 
@@ -12869,6 +12899,47 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-konva-utils@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "react-konva-utils@npm:0.2.0"
+  dependencies:
+    react-konva: ^17.0.2-4
+    use-image: ^1.0.7
+  peerDependencies:
+    konva: 8.x
+    react: ^17.0.2
+    react-dom: ^17.0.2
+  checksum: 9e2dc228d57bcbe6626dcd314751379b29f1859b58ae08ade2a4cf5c71351101120ff911d28857e6a76aefebc7df7b2ce243f731880f0f86ccdc9f001ca86133
+  languageName: node
+  linkType: hard
+
+"react-konva@npm:^17.0.2-4, react-konva@npm:^17.0.2-5":
+  version: 17.0.2-5
+  resolution: "react-konva@npm:17.0.2-5"
+  dependencies:
+    react-reconciler: ~0.26.2
+    scheduler: ^0.20.2
+  peerDependencies:
+    konva: ^8.0.1 || ^7.2.5
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 614522753fe95322fc022569cd95443eacfc1b9d2d84c0bb4ea40ce6cdce9b7c5843268e67ebef7cdb6d50ab08b8a5038ec760c3977a105e233bcceb8408de56
+  languageName: node
+  linkType: hard
+
+"react-reconciler@npm:~0.26.2":
+  version: 0.26.2
+  resolution: "react-reconciler@npm:0.26.2"
+  dependencies:
+    loose-envify: ^1.1.0
+    object-assign: ^4.1.1
+    scheduler: ^0.20.2
+  peerDependencies:
+    react: ^17.0.2
+  checksum: 2ebceace56f547f51eaf142becefef9cca980eae4f42d90ee5a966f54a375f5082d78b71b00c40bbd9bca69e0e0f698c7d4e81cc7373437caa19831fddc1d01b
+  languageName: node
+  linkType: hard
+
 "react-redux@npm:^7.2.6":
   version: 7.2.6
   resolution: "react-redux@npm:7.2.6"
@@ -13451,19 +13522,25 @@ __metadata:
     "@testing-library/react": ^12.1.2
     "@testing-library/user-event": ^13.5.0
     "@types/jest": ^27.0.3
+    "@types/lodash.throttle": ^4.1.6
     "@types/node": ^16.11.9
     "@types/react": ^17.0.36
     "@types/react-dom": ^17.0.11
     "@types/react-redux": ^7.1.20
     "@types/react-router-dom": ^5.3.2
     "@types/uuid": ^8.3.3
+    konva: ^8.3.2
+    lodash.throttle: ^4.1.1
     react: ^17.0.2
     react-dom: ^17.0.2
     react-hook-form: ^7.20.2
+    react-konva: ^17.0.2-5
+    react-konva-utils: ^0.2.0
     react-redux: ^7.2.6
     react-router-dom: ^6.0.2
     react-scripts: 4.0.3
     typescript: ~4.5.2
+    usehooks-ts: ^2.2.0
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
@@ -15374,10 +15451,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"use-image@npm:^1.0.7":
+  version: 1.0.8
+  resolution: "use-image@npm:1.0.8"
+  peerDependencies:
+    react: ^16.8.0 || ^17
+    react-dom: ^16.8.0 || ^17
+  checksum: 4e09948fb49ceed358999d6551ff73c5759c6c98a490e2ac363f1d3ba22b5f94bf3c738fde1f9a5962da84d6cf3195bff7c2721435d08ad3bf224ab2fa29847b
+  languageName: node
+  linkType: hard
+
 "use@npm:^3.1.0":
   version: 3.1.1
   resolution: "use@npm:3.1.1"
   checksum: 08a130289f5238fcbf8f59a18951286a6e660d17acccc9d58d9b69dfa0ee19aa038e8f95721b00b432c36d1629a9e32a464bf2e7e0ae6a244c42ddb30bdd8b33
+  languageName: node
+  linkType: hard
+
+"usehooks-ts@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "usehooks-ts@npm:2.2.0"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 904a3bfdbed85101b94672db93d75e12430c293235020cb055e4b0a841023df3f0d8c3d0c5a78b5c2e62deb370b1506a62e7a13d3c77a87c451126662ea44d89
   languageName: node
   linkType: hard
 

@@ -18,6 +18,8 @@ export default function ClippedDrawer() {
 
 	const [selectedIndex, setSelectedIndex] = useState(0);
 
+	const drawerWidth = 240;
+
 	const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, link: ListItemLinkProps, index: number) => {
 		navigate(link.to);
 		setSelectedIndex(index);
@@ -33,7 +35,13 @@ export default function ClippedDrawer() {
 					</Typography>
 				</Toolbar>
 			</AppBar>
-			<Drawer variant="permanent" sx={{ width: "240px", flexShrink: 0, [`& .MuiDrawer-paper`]: { width: "240px", boxSizing: "border-box"}}}>
+			<Drawer
+				variant="permanent"
+			    sx={{
+					width: drawerWidth,
+				    flexShrink: 0,
+				    [`& .MuiDrawer-paper`]: { width: "240px", boxSizing: "border-box"}
+			}}>
 				<Toolbar />
 				<Box sx={{ overflow: "auto" }}>
 					<List component="nav">

@@ -1,17 +1,14 @@
 import React from 'react';
 import './App.css';
-import MiniDrawer from "./ui/MiniDrawer";
 import ClippedDrawer from "./ui/ClippedDrawer";
+import {Box} from "@mui/material";
 
 function App() {
 
 	return (
-		<div className="App">
-		    <header>
-			    {/* <MiniDrawer /> */}
-			    <ClippedDrawer />
-		    </header>
-		</div>
+		<Box>
+			<ClippedDrawer />
+		</Box>
 	);
 }
 

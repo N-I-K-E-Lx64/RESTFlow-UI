@@ -10,6 +10,8 @@ import {UserInput} from "./features/user-input/UserInput";
 import {MonitoringGrid} from "./features/monitoring-grid/Overview";
 import {UserInputTabs} from "./features/user-input/UserInputTabs";
 import {Dashboard} from "./features/dashboard/Dashboard";
+import {ModelingTool} from "./features/modeling/ModelingTool";
+import {ModelTabs} from "./features/modeling/ModelTabs";
 
 ReactDOM.render(
 	<React.StrictMode>
@@ -18,6 +20,9 @@ ReactDOM.render(
 				<Routes>
 					<Route path="/" element={<App />} >
 						<Route index element={<Dashboard />} />
+						<Route path="modeling" element={<ModelTabs />} >
+							<Route path=":modelId" element={<ModelingTool />} />
+						</Route>
 						<Route path="monitoring" element={<MonitoringGrid />} />
 						<Route path="user-input" element={<UserInputTabs />} >
 							<Route path=":instanceId" element={<UserInput />} />
