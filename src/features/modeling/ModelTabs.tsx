@@ -19,7 +19,7 @@ export function ModelTabs() {
 		dispatch(addModel({
 			name: `Workflow${models.length + 1}`,
 			description: "",
-			symbols: [],
+			elements: [],
 			connectors: [],
 			tasks: []
 		}));

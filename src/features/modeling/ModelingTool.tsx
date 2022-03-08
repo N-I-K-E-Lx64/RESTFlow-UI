@@ -6,7 +6,15 @@ import {CallMade, RadioButtonChecked, RadioButtonUnchecked, Task} from "@mui/ico
 import {useAppDispatch, useAppSelector} from "../../app/hooks";
 import throttle from "lodash.throttle";
 import {useWindowSize} from "usehooks-ts";
-import {addConnector, addElement, addTask, Model, selectModels, updateElementPosition} from "./modelSlice";
+import {
+	addConnector,
+	addElement,
+	addTask,
+	assignConnector,
+	Model,
+	selectModels, updateConnector,
+	updateElementPosition
+} from "./modelSlice";
 import {Details} from "./Details";
 import {v4 as uuidv4} from "uuid";
 import {Connector, Element, ElementType, TaskType} from "../../model/types";
@@ -16,8 +24,6 @@ interface CanvasSize {
 	height: number;
 }
 
-// TODO : https://konvajs.org/docs/events/Binding_Events.html For highlighting a shape
-
 export function ModelingTool() {
 	const dispatch = useAppDispatch();
 
@@ -26,12 +32,13 @@ export function ModelingTool() {
 	const [addMode, setAddMode] = useState<ElementType | null>(null);
 	const [connectMode, setConnectMode] = useState<boolean>(false);
 	const [selectedElement, setSelectedElement] = useState<Element | null>(null);
+	const [draggedElementId, setDraggedElementId] = useState<string>("");
 
 	const [selector, setSelector] = useState<number[]>([]);
 
 	// TODO: Make this dynamic!
 	const model: Model = useAppSelector(selectModels)[0];
-	const elements: Element[] = model.symbols;
+	const elements: Element[] = model.elements;
 	const connectors: Connector[] = model.connectors;
 
 	const stageRef = useRef<HTMLDivElement>(null);
@@ -52,7 +59,8 @@ export function ModelingTool() {
 				y: pointerPosition.y,
 				width: 30,
 				height: 30,
-				type: addMode
+				type: addMode,
+				connectors: []
 			}));
 
 			dispatch(addTask({
@@ -72,19 +80,23 @@ export function ModelingTool() {
 	};
 
 	const handleSymbolClick = (e: any) => {
-		const symbolId = e.target.id();
-		const symbol = elements.find((symbol) => symbol.id === symbolId);
-		console.log(selectedElement);
-		console.log("Select: " + symbolId);
+		const elementId = e.target.id();
+		const element = elements.find((symbol) => symbol.id === elementId);
+		console.log("Select: " + elementId);
 
-		if (typeof symbol !== "undefined") {
+		if (typeof element !== "undefined") {
 			// Store the selected symbol if connectMode is activated
-			setSelectedElement(symbol);
+			setSelectedElement(element);
 
 			if (selectedElement !== null && connectMode) {
 				// Compute the Connector Points and store the connector, so it can be drawn
-				const points = getConnectorPoints(selectedElement, symbol);
-				dispatch(addConnector({id: connectors.length.toString() + 1, points: points}));
+				const points = getConnectorPoints(selectedElement, element);
+				const connectorId = uuidv4();
+				dispatch(addConnector({id: connectorId, points: points, source: selectedElement.id, target: elementId}));
+
+				// Assign the connector to the source and target element
+				dispatch(assignConnector({elementId: selectedElement.id, connectorId: connectorId}));
+				dispatch(assignConnector({elementId: elementId, connectorId: connectorId}));
 
 				// Deactivate Connect Mode
 				setConnectMode(false);
@@ -92,10 +104,56 @@ export function ModelingTool() {
 		}
 	};
 
-	// Updates the position of an element when the drag move ends
+	// Updates the position and the selector position of the dragged element
 	const handleDragEnd = (e: any) => {
-		dispatch(updateElementPosition({id: e.target.id(), x: e.target.x(), y: e.target.y()}));
+		const elementId = e.target.id();
+		dispatch(updateElementPosition({id: elementId, x: e.target.x(), y: e.target.y()}));
+		setDraggedElementId(elementId);
 	};
+
+	const getElement = (elementId: string): Element | null => {
+		const element = elements. find((element) => element.id === elementId);
+		if (typeof element !== "undefined") {
+			return element;
+		} else {
+			return null;
+		}
+	};
+
+	useEffect(() => {
+		// Updates the connectors accordingly
+		const draggedElement = getElement(draggedElementId);
+		if (draggedElement !== null) {
+			draggedElement.connectors.forEach((connId: string) => {
+				const conn = connectors.find((conn: Connector) => conn.id === connId);
+
+				let source: Element | null = null;
+				let target: Element | null = null;
+
+				// Determines the source and target of the connector
+				if (typeof conn !== "undefined") {
+					if (conn.source === draggedElementId) {
+						source = draggedElement;
+						target = getElement(conn.target);
+					} else {
+						source = getElement(conn.source);
+						target = draggedElement;
+					}
+				}
+
+				// Computes the new line points and store them in the state
+				if (source !== null && target !== null) {
+					const newPoints = getConnectorPoints(source, target);
+					dispatch(updateConnector({ id: connId, points: newPoints }));
+				}
+			});
+			// Reset the dragged Element
+			setDraggedElementId("");
+
+			// Updates the selector position
+			setSelectedElement(draggedElement);
+		}
+	}, [draggedElementId]);
 
 	// Highlight the selected symbol
 	useEffect(() => {
@@ -104,8 +162,6 @@ export function ModelingTool() {
 			const w = width + 4;
 			const h = height + 4;
 			setSelector([x - w, y + h, x + w, y + h, x + w, y - h, x - w, y - h, x - w, y + h]);
-
-			console.log("Draw Selector");
 		}
 	}, [selectedElement]);
 

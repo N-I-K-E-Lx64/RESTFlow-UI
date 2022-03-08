@@ -39,17 +39,36 @@ export interface Element {
 	width: number;
 	height: number;
 	type: ElementType;
+	connectors: string[];
 }
 
 export interface Connector {
 	id: string;
 	points: number[];
+	source: string;
+	target: string;
+}
+
+interface FlowElement {
+	id: string;
+	incoming: string;
+	outgoing: string;
 }
 
 export interface PositionUpdate {
 	id: string;
 	x: number;
 	y: number;
+}
+
+export interface ConnectorAssignUpdate {
+	elementId: string;
+	connectorId: string;
+}
+
+export interface ConnectorUpdate {
+	id: string;
+	points: number[];
 }
 
 

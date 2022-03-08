@@ -24,8 +24,6 @@ export function Details(props: DetailProps) {
 
 	// Update the task model, when the user changes the selection
 	useEffect(() => {
-		console.log(props);
-
 		const task = model.tasks.find((task) => task.id === props.selectedElementId);
 		if (typeof task !== "undefined") {
 			setTaskModel(task);
