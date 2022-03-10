@@ -3,39 +3,37 @@ import {useForm, FormProvider} from "react-hook-form";
 import {FormInput} from "../../ui/FormInput";
 import {FormSelect} from "../../ui/FormSelect";
 import {useEffect, useState} from "react";
-import {Model, selectModels} from "./modelSlice";
+import {selectModel} from "./modelSlice";
 import {Task} from "../../model/types";
 import {useAppSelector} from "../../app/hooks";
-
-export interface DetailProps {
-	selectedElementId?: string;
-}
+import {selectSelection} from "./selectionSlice";
 
 export interface ValidationRules {
 	required?: { value: boolean, message: string };
 }
 
-export function Details(props: DetailProps) {
+export function Details() {
 	const methods = useForm();
 	const {formState} = methods;
 	const [taskModel, setTaskModel] = useState<Task | null>(null);
 
-	const model: Model = useAppSelector(selectModels)[0];
+	const model = useAppSelector(selectModel);
+	const selectionId = useAppSelector(selectSelection);
 
 	// Update the task model, when the user changes the selection
 	useEffect(() => {
-		const task = model.tasks.find((task) => task.id === props.selectedElementId);
+		const task = model.tasks.find((task) => task.id === selectionId);
 		if (typeof task !== "undefined") {
 			setTaskModel(task);
 		}
-	}, [props, model]);
+	}, [selectionId, model]);
 
 	useEffect(() => {
 		console.log(taskModel);
 		if (taskModel !== null) {
 			methods.reset(taskModel);
 		}
-	}, [taskModel]);
+	}, [taskModel, methods]);
 
 	const handleModelUpdate = () => {
 		methods.trigger().then(validationStatus => {
