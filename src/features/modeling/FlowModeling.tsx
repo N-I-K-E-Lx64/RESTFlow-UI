@@ -208,8 +208,6 @@ export function FlowModeling() {
 
 	useLayoutEffect(() => {
 		if (stageRef.current) {
-			// console.log(width, height);
-			console.log(stageRef.current.offsetWidth, stageRef.current.offsetHeight);
 			setCanvasSize({width: stageRef.current.offsetWidth, height: 600});
 		}
 		// setCanvasSize({ width: 600, height: 600 });
@@ -283,7 +281,7 @@ export function FlowModeling() {
 					</Layer>
 				</Stage>
 			</Box>
-
+			{/* TODO : Put this button at the bottom of the stage*/}
 			<Box sx={{ display: "flex", justifyContent: "center", margin: "5% 0" }}>
 				<Button onClick={saveModel} variant="outlined">Save</Button>
 			</Box>
