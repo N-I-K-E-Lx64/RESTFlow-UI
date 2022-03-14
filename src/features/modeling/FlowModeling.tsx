@@ -10,13 +10,13 @@ import {
 } from "./modelSlice";
 import {Connector, Element, ElementType, TaskType} from "../../model/types";
 import {useEffect, useLayoutEffect, useRef, useState} from "react";
-import {Box, Button, Divider, IconButton, Paper, Stack} from "@mui/material";
+import {Box, Divider, IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack} from "@mui/material";
 import {Arrow, Circle, Layer, Line, Stage} from "react-konva";
 import {Html} from "react-konva-utils";
-import {CallMade, RadioButtonChecked, RadioButtonUnchecked, Task} from "@mui/icons-material";
+import {CallMade, Delete, PlayArrow, RadioButtonChecked, RadioButtonUnchecked, Save, Task} from "@mui/icons-material";
 import {useWindowSize} from "usehooks-ts";
 import {useAppDispatch, useAppSelector} from "../../app/hooks";
-import {useAddModelMutation} from "../../app/service/modelApi";
+import {useDeleteModelMutation, useUpdateModelMutation} from "../../app/service/modelApi";
 import {setSelection} from "./selectionSlice";
 
 interface CanvasSize {
@@ -37,7 +37,8 @@ export function FlowModeling() {
 
 	const stageRef = useRef<HTMLDivElement>(null);
 
-	const [addModel] = useAddModelMutation();
+	const [updateModel] = useUpdateModelMutation();
+	const [deleteModel] = useDeleteModelMutation();
 
 	const model = useAppSelector(selectModel);
 	const elements = model.elements;
@@ -95,7 +96,12 @@ export function FlowModeling() {
 				// Compute the Connector Points and store the connector, so it can be drawn
 				const points = getConnectorPoints(selectedElement, element);
 				const connectorId = uuidv4();
-				dispatch(addConnector({id: connectorId, points: points, source: selectedElement.id, target: elementId}));
+				dispatch(addConnector({
+					id: connectorId,
+					points: points,
+					source: selectedElement.id,
+					target: elementId
+				}));
 
 				// Assign the connector to the source and target element
 				dispatch(assignConnector({elementId: selectedElement.id, connectorId: connectorId}));
@@ -148,7 +154,7 @@ export function FlowModeling() {
 				// Computes the new line points and store them in the state
 				if (source !== null && target !== null) {
 					const newPoints = getConnectorPoints(source, target);
-					dispatch(updateConnector({ id: connId, points: newPoints }));
+					dispatch(updateConnector({id: connId, points: newPoints}));
 				}
 			});
 			// Reset the dragged Element
@@ -202,10 +208,6 @@ export function FlowModeling() {
 		return throttle(handleDragMove, 50);
 	}, []);*/
 
-	const saveModel = () => {
-		addModel(model).then((result) => console.log(result));
-	}
-
 	useLayoutEffect(() => {
 		if (stageRef.current) {
 			setCanvasSize({width: stageRef.current.offsetWidth, height: 600});
@@ -213,59 +215,89 @@ export function FlowModeling() {
 		// setCanvasSize({ width: 600, height: 600 });
 	}, [width, height]);
 
+	const handleUpdateModel = () => {
+		updateModel(model).then((result) => console.log(result));
+	};
+
+	const handleDeleteModel = () => {
+		deleteModel(model.id).then((result) => console.log(result));
+	}
+
+	// Object containing the actions for the SpeedDial
+	const actions = [
+		{icon: <Save/>, name: 'Save', action: handleUpdateModel},
+		{icon: <Delete/>, name: 'Delete', action: handleDeleteModel},
+		{icon: <PlayArrow/>, name: 'Play'}
+	];
+
 	return (
-		<Box>
-			<Box sx={{border: "medium dashed grey"}} ref={stageRef}>
-				<Stage
-					width={canvasSize.width}
-					height={canvasSize.height}
-					onMouseDown={handleStageClick}
-				>
-					<Layer>
-						<Html>
-							<Paper sx={{p: 1, position: 'absolute', top: '8px', left: '8px'}}>
-								<Stack spacing={1}>
-									<IconButton aria-label="AddStartEvent"
-									            onClick={() => setAddMode(ElementType.START_EVENT)}>
-										<RadioButtonUnchecked/>
-									</IconButton>
-									<IconButton aria-label="AddEndEvent"
-									            onClick={() => setAddMode(ElementType.END_EVENT)}>
-										<RadioButtonChecked/>
-									</IconButton>
-									<IconButton aria-label="AddTask" onClick={() => setAddMode(ElementType.TASK)}>
-										<Task/>
-									</IconButton>
+		<Box sx={{border: "medium dashed grey"}} ref={stageRef}>
+			<Stage
+				width={canvasSize.width}
+				height={canvasSize.height}
+				onMouseDown={handleStageClick}
+			>
+				<Layer>
+					<Html>
+						<Paper sx={{p: 1, position: 'absolute', top: '8px', left: '8px'}}>
+							<Stack spacing={1}>
+								<IconButton aria-label="AddStartEvent"
+								            onClick={() => setAddMode(ElementType.START_EVENT)}>
+									<RadioButtonUnchecked/>
+								</IconButton>
+								<IconButton aria-label="AddEndEvent"
+								            onClick={() => setAddMode(ElementType.END_EVENT)}>
+									<RadioButtonChecked/>
+								</IconButton>
+								<IconButton aria-label="AddTask" onClick={() => setAddMode(ElementType.TASK)}>
+									<Task/>
+								</IconButton>
 
-									<Divider />
+								<Divider/>
 
-									<IconButton aria-label="ConnectTasks" onClick={() => setConnectMode(true)}>
-										<CallMade />
-									</IconButton>
-								</Stack>
-							</Paper>
-						</Html>
+								<IconButton aria-label="ConnectTasks" onClick={() => setConnectMode(true)}>
+									<CallMade/>
+								</IconButton>
+							</Stack>
+						</Paper>
+					</Html>
 
+					<Html divProps={{style: {position: 'absolute', inset: 'auto 8px 8px auto'}}}>
+						<SpeedDial
+							ariaLabel="SpeedDial"
+							icon={<SpeedDialIcon/>}
+							direction="left"
+						>
+							{actions.map((action) => (
+								<SpeedDialAction
+									key={action.name}
+									icon={action.icon}
+									tooltipTitle={action.name}
+									onClick={action.action}
+								/>
+							))}
+						</SpeedDial>
+					</Html>
 
-						{elements.map((symbol) => (
-							<Circle key={symbol.id} id={symbol.id} x={symbol.x} y={symbol.y} radius={symbol.width}
-							        fill={"green"}
-							        draggable
-								// onDragMove={throttledDragMove}
-								    onDragEnd={handleDragEnd}
-								    onClick={handleSymbolClick}
-							/>
-						))}
+					{elements.map((symbol) => (
+						<Circle key={symbol.id} id={symbol.id} x={symbol.x} y={symbol.y} radius={symbol.width}
+						        fill={"green"}
+						        draggable
+							// onDragMove={throttledDragMove}
+							    onDragEnd={handleDragEnd}
+							    onClick={handleSymbolClick}
+						/>
+					))}
 
-						{connectors.map((conn) => (
-							<Arrow key={conn.id} points={conn.points} fill={"black"} stroke={"black"}/>
-						))}
+					{connectors.map((conn) => (
+						<Arrow key={conn.id} points={conn.points} fill={"black"} stroke={"black"}/>
+					))}
 
-						{selector.length >= 1 &&
-							<Line key="Selector" points={selector} stroke='#b3e5fc' strokeWidth={2} dash={[5,5]} />
-						}
+					{selector.length >= 1 &&
+						<Line key="Selector" points={selector} stroke='#b3e5fc' strokeWidth={2} dash={[5, 5]}/>
+					}
 
-						{/*{contextMenu.isActivated && (
+					{/*{contextMenu.isActivated && (
 								<Html>
 									<Paper sx={{p: 1, position: "absolute", top: contextMenu.top, left: contextMenu.left}}>
 										<Grid container spacing={1}>
@@ -278,13 +310,10 @@ export function FlowModeling() {
 									</Paper>
 								</Html>
 							)}*/}
-					</Layer>
-				</Stage>
-			</Box>
-			{/* TODO : Put this button at the bottom of the stage*/}
-			<Box sx={{ display: "flex", justifyContent: "center", margin: "5% 0" }}>
-				<Button onClick={saveModel} variant="outlined">Save</Button>
-			</Box>
+
+
+				</Layer>
+			</Stage>
 		</Box>
 	)
 }

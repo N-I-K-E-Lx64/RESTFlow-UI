@@ -7,7 +7,7 @@ import {
 	DialogTitle,
 	Tab,
 	Tabs,
-	TextField
+	TextField, Typography
 } from "@mui/material";
 import {Link, Outlet, useNavigate} from "react-router-dom";
 import {SyntheticEvent, useEffect, useState} from "react";
@@ -54,29 +54,29 @@ export function ModelTabs() {
 		const modelId = uuidv4();
 		const dummyModel: Model = { id: modelId, name: data.modelName, description: "", elements: [], connectors: [], tasks: [] };
 		dispatch(setActiveModel(dummyModel));
-		addModel(dummyModel);
-		// Deactivate the dialog
-		setOpen(false);
+		addModel(dummyModel).then(() => {
+			// Deactivate the dialog
+			setOpen(false);
 
-		// Navigate to the created model
-		navigate(`${modelId}`);
+			// Navigate to the created model
+			navigate(`${modelId}`);
+		});
 	};
 
 	// When a new model is created set the tab-value accordingly
 	useEffect(() => {
 		const index = models?.findIndex((model: Model) => model.name === selectedModel.name);
-		console.log(index);
 		if (index !== -1 && typeof index !== "undefined") {
 			setCurrentModel(index);
 		}
 	}, [models, selectedModel]);
 
 	if (isLoading) {
-		return (<h1>Loading...</h1>);
+		return (<Typography variant="h2" gutterBottom>Loading...</Typography>);
 	}
 
 	if (error) {
-		return (<h1>Error</h1>);
+		return (<Typography variant="h2" gutterBottom>Error</Typography>);
 	}
 
 	return (
@@ -95,7 +95,7 @@ export function ModelTabs() {
 					<DialogTitle>Model Creation</DialogTitle>
 					<DialogContent>
 						<DialogContentText>
-							Enter a name for the model.
+							Enter a model name
 						</DialogContentText>
 
 						<Controller

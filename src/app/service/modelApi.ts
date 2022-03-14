@@ -6,25 +6,36 @@ type ModelsResponse = Model[];
 const modelApi = restflowAPI.injectEndpoints({
 	endpoints: (build) => ({
 		getModels: build.query<ModelsResponse, void>({
-			query: () => 'models',
+			query: () => '/models',
 			providesTags: (result) => result
-				? [ ...result.map(({ name }) => ({ type: 'Model' as const, name})), { type: 'Model', id: 'LIST' }]
-				: [{ type: 'Model', id: 'LIST' }]
-		}),
-		getModel: build.query<Model, string>({
-			query: (id) => `model/${id}`,
-			providesTags: (result, error, id) => [{ type: 'Model', id }],
+				? [ ...result.map(({ id }) => ({ type: 'Model' as const, id })), 'Model' ]
+				: ['Model']
 		}),
 		addModel: build.mutation<Model, Partial<Model>>({
 			query: (body) => ({
-				url: 'model',
+				url: '/model',
 				method: 'POST',
+				body
+			}),
+			invalidatesTags: ['Model']
+		}),
+		updateModel: build.mutation<Model, Partial<Model>>({
+			query: (body) => ({
+				url: `/model/${body.id}`,
+				method: 'PATCH',
 				body
 			}),
 			invalidatesTags: ['Model'],
 		}),
+		deleteModel: build.mutation<{ success: boolean }, string>({
+			query: (id) => ({
+				url: `model/${id}`,
+				method: 'DELETE'
+			}),
+			invalidatesTags: (result, error, id) => [{ type: 'Model', id}]
+		})
 	}),
 	overrideExisting: true,
 });
 
-export const { useGetModelsQuery, useGetModelQuery, useAddModelMutation } = modelApi;
+export const { useGetModelsQuery, useAddModelMutation, useUpdateModelMutation, useDeleteModelMutation } = modelApi;
