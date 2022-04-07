@@ -1,5 +1,5 @@
 import {restflowAPI} from "./restflowAPI";
-import {Model} from "../../features/modeling/modelSlice";
+import {Model} from "../../model/types";
 
 type ModelsResponse = Model[];
 

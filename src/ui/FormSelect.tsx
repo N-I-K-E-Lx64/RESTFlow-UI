@@ -17,7 +17,7 @@ export function FormSelect(props: FormSelectProps) {
 				control={control}
 				defaultValue={0}
 				render={({field}) =>
-					<TextField select label={props.label} {...field}>
+					<TextField select fullWidth label={props.label} {...field}>
 						{props.options.map((item) => (
 							<MenuItem key={item.value} value={item.value}>
 								{item.label}

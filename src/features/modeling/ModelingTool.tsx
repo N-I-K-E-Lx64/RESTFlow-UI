@@ -1,5 +1,5 @@
 import {Grid} from "@mui/material";
-import {Details} from "./Details";
+import {DetailModeling} from "./DetailModeling";
 import {FlowModeling} from "./FlowModeling";
 
 export function ModelingTool() {
@@ -11,7 +11,7 @@ export function ModelingTool() {
 			</Grid>
 
 			<Grid item xs={4}>
-				<Details />
+				<DetailModeling />
 			</Grid>
 		</Grid>
 	);

@@ -13,10 +13,11 @@ import {Link, Outlet, useNavigate} from "react-router-dom";
 import {SyntheticEvent, useEffect, useState} from "react";
 import {Add} from "@mui/icons-material";
 import {useAppDispatch, useAppSelector} from "../../app/hooks";
-import {setActiveModel, Model, selectModel} from "./modelSlice";
+import {setActiveModel, selectModel} from "./modelSlice";
 import {useAddModelMutation, useGetModelsQuery} from "../../app/service/modelApi";
 import {v4 as uuidv4} from "uuid";
 import {Controller, SubmitHandler, useForm} from "react-hook-form";
+import {Model} from "../../model/types";
 
 interface ModelNameInput {
 	modelName: string
@@ -52,7 +53,7 @@ export function ModelTabs() {
 	const onSubmit: SubmitHandler<ModelNameInput> = (data) => {
 		console.log(data);
 		const modelId = uuidv4();
-		const dummyModel: Model = { id: modelId, name: data.modelName, description: "", elements: [], connectors: [], tasks: [] };
+		const dummyModel: Model = { id: modelId, name: data.modelName, description: "", variables: [], elements: [], connectors: [], tasks: [] };
 		dispatch(setActiveModel(dummyModel));
 		addModel(dummyModel).then(() => {
 			// Deactivate the dialog
@@ -79,6 +80,7 @@ export function ModelTabs() {
 		return (<Typography variant="h2" gutterBottom>Error</Typography>);
 	}
 
+	// TODO : Use History.push instead of navigation tabs!
 	return (
 		<Box sx={{paddingBottom: 8}}>
 			<Tabs value={currentModel} onChange={handleChange} selectionFollowsFocus>

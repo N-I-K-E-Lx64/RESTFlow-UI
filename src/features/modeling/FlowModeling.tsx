@@ -8,10 +8,10 @@ import {
 	updateConnector,
 	updateElementPosition
 } from "./modelSlice";
-import {Connector, Element, ElementType, TaskType} from "../../model/types";
+import {Connector, Element, ElementType, InvokeTaskParams, Model, TaskType} from "../../model/types";
 import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {Box, Divider, IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack} from "@mui/material";
-import {Arrow, Circle, Layer, Line, Stage} from "react-konva";
+import {Arrow, Circle, Layer, Line, Rect, Stage} from "react-konva";
 import {Html} from "react-konva-utils";
 import {CallMade, Delete, PlayArrow, RadioButtonChecked, RadioButtonUnchecked, Save, Task} from "@mui/icons-material";
 import {useWindowSize} from "usehooks-ts";
@@ -40,8 +40,10 @@ export function FlowModeling() {
 	const [updateModel] = useUpdateModelMutation();
 	const [deleteModel] = useDeleteModelMutation();
 
-	const model = useAppSelector(selectModel);
-	const elements = model.elements;
+	const model: Model = useAppSelector(selectModel);
+	const startElement = model.elements.filter((element) => element.type === ElementType.START_EVENT);
+	const endElement = model.elements.filter((element) => element.type === ElementType.END_EVENT);
+	const elements = model.elements.filter((element) => element.type !== ElementType.START_EVENT && element.type !== ElementType.END_EVENT);
 	const connectors = model.connectors;
 
 	// Handles creation of new elements or deselection of elements
@@ -54,30 +56,45 @@ export function FlowModeling() {
 			const pointerPosition = e.currentTarget.getPointerPosition();
 			// Generate a "global" id for this task
 			const id = uuidv4();
+
 			// Create a new element on the click position based on the symbol type
 			dispatch(addElement({
 				id: id,
 				x: pointerPosition.x,
 				y: pointerPosition.y,
-				width: 30,
-				height: 30,
+				width: 100,
+				height: 50,
 				type: addMode,
 				connectors: []
 			}));
 
-			dispatch(addTask({
-				id: id,
-				description: "Test",
-				type: TaskType.INVOKE_TASK,
-				params: ""
-			}));
+			switch (addMode) {
+				case ElementType.START_EVENT: {
+					break;
+				}
+				case ElementType.END_EVENT: {
+					break;
+				}
+				case ElementType.TASK: {
+					const dummyParams: InvokeTaskParams = {raml: "", resource: "", inputVariable: "", targetVariable: ""};
+					dispatch(addTask({
+						id: id,
+						description: "Test",
+						type: TaskType.INVOKE_TASK,
+						params: dummyParams
+					}));
+				}
+			}
 
 			// Reset the mode (with null)
 			setAddMode(null);
 		} else {
 			// Deselect when the user clicks on empty area
 			const clickedOnEmpty = e.target === e.target.getStage();
-			if (clickedOnEmpty) setSelectedElement(null);
+			if (clickedOnEmpty) {
+				setSelectedElement(null);
+				dispatch(setSelection(""));
+			}
 		}
 	};
 
@@ -85,11 +102,12 @@ export function FlowModeling() {
 	const handleSymbolClick = (e: any) => {
 		const elementId = e.target.id();
 		const element: Element | null = getElement(elementId);
-		console.log("Select: " + elementId);
+		console.log("Select: " + elementId, element);
 
 		if (element !== null) {
 			// Store the selected symbol if connectMode is activated
 			setSelectedElement(element);
+			console.log(selectedElement);
 			dispatch(setSelection(elementId));
 
 			if (selectedElement !== null && connectMode) {
@@ -121,7 +139,8 @@ export function FlowModeling() {
 	};
 
 	const getElement = (elementId: string): Element | null => {
-		const element = elements.find((element) => element.id === elementId);
+		const mergedElements = elements.concat(startElement, endElement);
+		const element = mergedElements.find((element) => element.id === elementId);
 		if (typeof element !== "undefined") {
 			return element;
 		} else {
@@ -169,9 +188,19 @@ export function FlowModeling() {
 	useEffect(() => {
 		if (selectedElement !== null) {
 			const {x, y, width, height} = selectedElement;
-			const w = width + 4;
-			const h = height + 4;
-			setSelector([x - w, y + h, x + w, y + h, x + w, y - h, x - w, y - h, x - w, y + h]);
+			switch (selectedElement.type) {
+				case ElementType.START_EVENT:
+				case ElementType.END_EVENT:
+					const r = (height/2) + 8;
+					setSelector([x - r, y + r, x + r, y + r, x + r, y - r, x - r, y - r, x - r, y + r]);
+					break;
+
+				case ElementType.TASK:
+					const w = width + 8;
+					const h = height + 8;
+					setSelector([x - 8, y - 8, x + w, y - 8, x + w, y + h, x - 8, y + h, x - 8 , y - 8]);
+					break;
+			}
 		} else {
 			// Disables the selector when no element is currently selected
 			setSelector([]);
@@ -216,6 +245,7 @@ export function FlowModeling() {
 	}, [width, height]);
 
 	const handleUpdateModel = () => {
+		console.log(model);
 		updateModel(model).then((result) => console.log(result));
 	};
 
@@ -279,13 +309,31 @@ export function FlowModeling() {
 						</SpeedDial>
 					</Html>
 
-					{elements.map((symbol) => (
-						<Circle key={symbol.id} id={symbol.id} x={symbol.x} y={symbol.y} radius={symbol.width}
-						        fill={"green"}
+					{startElement.map((element) => (
+						<Circle key={element.id} id={element.id} x={element.x} y={element.y} radius={element.height / 2}
+						        fill={"white"} stroke={"black"} strokeWidth={2}
+								draggable
+						        onDragEnd={handleDragEnd}
+						        onClick={handleSymbolClick}
+						/>
+					))}
+
+					{endElement.map((element) => (
+						<Circle key={element.id} id={element.id} x={element.x} y={element.y} radius={element.height / 2}
+						        fill={"white"} stroke={"black"} strokeWidth={5}
 						        draggable
-							// onDragMove={throttledDragMove}
-							    onDragEnd={handleDragEnd}
-							    onClick={handleSymbolClick}
+						        onDragEnd={handleDragEnd}
+						        onClick={handleSymbolClick}
+						/>
+					))}
+
+					{elements.map((element) => (
+						<Rect key={element.id} id={element.id} x={element.x} y={element.y} width={element.width} height={element.height}
+						      fill={"white"} stroke={"black"} strokeWidth={2}
+						      draggable
+						      //onDragMove={throttledDragMove}
+							  onDragEnd={handleDragEnd}
+							  onClick={handleSymbolClick}
 						/>
 					))}
 

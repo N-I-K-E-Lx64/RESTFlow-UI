@@ -1,23 +1,22 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from "../../app/store";
-import {Connector, Task, Element, PositionUpdate, ConnectorAssignUpdate, ConnectorUpdate} from "../../model/types";
+import {
+	Connector,
+	Task,
+	Element,
+	PositionUpdate,
+	ConnectorAssignUpdate,
+	ConnectorUpdate,
+	Model, GeneralModelData
+} from "../../model/types";
 import { NIL } from "uuid";
-
-export interface Model {
-	id: string;
-	name: string;
-	description: string;
-	elements: Element[];
-	connectors: Connector[];
-	tasks: Task[];
-}
 
 interface ModelState {
 	model: Model
 }
 
 const initialState: ModelState = {
-	model: {id: NIL, name: "", description: "", elements: [], connectors: [], tasks: []}
+	model: {id: NIL, name: "", description: "", variables: [],  elements: [], connectors: [], tasks: []}
 }
 
 export const modelSlice = createSlice({
@@ -26,6 +25,12 @@ export const modelSlice = createSlice({
 	reducers: {
 		setActiveModel: (state, action: PayloadAction<Model>) => {
 			state.model = action.payload;
+		},
+		updateGeneralModelData: (state, action: PayloadAction<GeneralModelData>) => {
+			const { name, description, variables } = action.payload;
+			state.model.name = name;
+			state.model.description = description;
+			state.model.variables = variables;
 		},
 		addElement: (state, action: PayloadAction<Element>) => {
 			state.model.elements.push(action.payload);
@@ -58,11 +63,29 @@ export const modelSlice = createSlice({
 		addTask: (state, action: PayloadAction<Task>) => {
 			state.model.tasks.push(action.payload);
 		},
+		updateTask: (state, action: PayloadAction<Task>) => {
+			const { id } = action.payload;
+			const index = state.model.tasks.findIndex((task: Task) => task.id === id);
+			if (index !== -1) {
+				state.model.tasks[index] = {...state.model.tasks[index], ...action.payload};
+			}
+		}
 	}
 });
 
-export const {setActiveModel, addElement, updateElementPosition, assignConnector, updateConnector, addConnector, addTask} = modelSlice.actions;
+export const {
+	setActiveModel,
+	updateGeneralModelData,
+	addElement,
+	updateElementPosition,
+	assignConnector,
+	updateConnector,
+	addConnector,
+	addTask,
+	updateTask
+} = modelSlice.actions;
 
 export const selectModel = (state: RootState) => state.model.model;
+export const selectVariables = (state: RootState) => state.model.model.variables;
 
 export default modelSlice.reducer;

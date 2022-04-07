@@ -1,9 +1,9 @@
-interface Model {
+export interface Model {
 	id: string;
 	name: string;
 	description: string;
-	variables: string;
-	processFlow: string;
+	variables: Variable[];
+	connectors: Connector[];
 	tasks: Task[];
 	elements: Element[];
 }
@@ -26,11 +26,28 @@ export enum TaskType {
 	SWITCH_TASK
 }
 
+export enum VariableType {
+	STRING,
+	JSON
+}
+
 export interface Task {
 	id: string;
 	description: string;
 	type: TaskType;
-	params: string;
+	params: InvokeTaskParams | AssignTaskParams;
+}
+
+export interface InvokeTaskParams {
+	raml: string;
+	resource: string;
+	inputVariable: string;
+	targetVariable: string;
+}
+
+export interface AssignTaskParams {
+	value: string;
+	targetVariable: string;
 }
 
 export interface Element {
@@ -48,6 +65,11 @@ export interface Connector {
 	points: number[];
 	source: string;
 	target: string;
+}
+
+export interface Variable {
+	name: string;
+	type: VariableType;
 }
 
 interface FlowElement {
@@ -72,4 +94,9 @@ export interface ConnectorUpdate {
 	points: number[];
 }
 
-
+export interface GeneralModelData {
+	id: string;
+	name: string;
+	description: string;
+	variables: Variable[];
+}
