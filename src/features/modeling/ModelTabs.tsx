@@ -31,8 +31,10 @@ export function ModelTabs() {
 	const [currentModel, setCurrentModel] = useState<number>(0);
 	const selectedModel = useAppSelector(selectModel);
 
-	const { data: models, error, isLoading } = useGetModelsQuery();
+	const { data: models, error, isLoading, isFetching } = useGetModelsQuery();
 	const [addModel] = useAddModelMutation();
+
+	console.log(isFetching);
 
 	const handleDialogOpen = () => {
 		setOpen(true)

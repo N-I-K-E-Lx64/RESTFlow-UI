@@ -329,7 +329,7 @@ export function FlowModeling() {
 
 					{elements.map((element) => (
 						<Rect key={element.id} id={element.id} x={element.x} y={element.y} width={element.width} height={element.height}
-						      fill={"white"} stroke={"black"} strokeWidth={2}
+						      fill={"white"} stroke={"black"} strokeWidth={2} cornerRadius={10}
 						      draggable
 						      //onDragMove={throttledDragMove}
 							  onDragEnd={handleDragEnd}

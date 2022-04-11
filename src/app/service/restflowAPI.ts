@@ -4,4 +4,5 @@ export const restflowAPI = createApi({
 	baseQuery: fetchBaseQuery({baseUrl: 'http://localhost:8080'}),
 	tagTypes: ['UserParam', 'Model'],
 	endpoints: () => ({}),
+	refetchOnMountOrArgChange: true
 });
