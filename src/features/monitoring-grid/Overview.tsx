@@ -32,7 +32,7 @@ export function MonitoringGrid() {
 		}
 	}, [data, isLoading]);
 
-	const handleClose = (event: React.SyntheticEvent | React.MouseEvent, reason?: string) => {
+	const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
 		if (reason === 'clickaway') return;
 
 		setOpen(false);

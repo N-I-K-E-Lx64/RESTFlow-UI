@@ -1,10 +1,12 @@
 import {configureStore, ThunkAction, Action} from '@reduxjs/toolkit';
-import counterReducer from '../features/counter/counterSlice';
 import {restflowAPI} from "./service/restflowAPI";
+import modelSliceReducer from "../features/modeling/modelSlice";
+import selectionSliceReducer from "../features/modeling/selectionSlice";
 
 export const store = configureStore({
   reducer: {
-    counter: counterReducer,
+    model: modelSliceReducer,
+    selection: selectionSliceReducer,
     [restflowAPI.reducerPath]: restflowAPI.reducer,
   },
   middleware: (getDefaultMiddleware) =>

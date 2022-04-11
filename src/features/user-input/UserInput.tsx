@@ -16,14 +16,12 @@ import {useParams} from "react-router-dom";
 import {TopicOutlined} from "@mui/icons-material";
 import {Controller, SubmitHandler, useFieldArray, useForm} from "react-hook-form";
 import React, {useEffect} from "react";
-import assert from "assert";
 
 export function UserInput() {
-	const { instanceId } = useParams();
-	assert(instanceId !== undefined);
+	const { instanceId } = useParams<{instanceId: string}>();
 
-	const {data: variables, isLoading: isLoadingVariables } = useGetVariablesQuery(instanceId);
-	const {data: userParams, isLoading: isLoadingUserParams } = useGetUserParamsQuery(instanceId);
+	const {data: variables, isLoading: isLoadingVariables } = useGetVariablesQuery(instanceId!);
+	const {data: userParams, isLoading: isLoadingUserParams } = useGetUserParamsQuery(instanceId!);
 
 	const [updateUserParam] = useUpdateUserParamMutation();
 
