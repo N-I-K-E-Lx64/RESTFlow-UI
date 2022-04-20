@@ -11,7 +11,7 @@ import {
 import {Connector, Element, ElementType, InvokeTaskParams, Model, TaskType} from "../../model/types";
 import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {Box, Divider, IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack} from "@mui/material";
-import {Arrow, Circle, Layer, Line, Rect, Stage} from "react-konva";
+import {Arrow, Circle, Group, Layer, Line, Rect, Stage, Text} from "react-konva";
 import {Html} from "react-konva-utils";
 import {CallMade, Delete, PlayArrow, RadioButtonChecked, RadioButtonUnchecked, Save, Task} from "@mui/icons-material";
 import {useWindowSize} from "usehooks-ts";
@@ -22,6 +22,11 @@ import {setSelection} from "./selectionSlice";
 interface CanvasSize {
 	width: number;
 	height: number;
+}
+
+interface Point {
+	x: number;
+	y: number;
 }
 
 export function FlowModeling() {
@@ -107,12 +112,11 @@ export function FlowModeling() {
 		if (element !== null) {
 			// Store the selected symbol if connectMode is activated
 			setSelectedElement(element);
-			console.log(selectedElement);
 			dispatch(setSelection(elementId));
 
 			if (selectedElement !== null && connectMode) {
 				// Compute the Connector Points and store the connector, so it can be drawn
-				const points = getConnectorPoints(selectedElement, element);
+				const points = calcConnectorPoints(selectedElement, element);
 				const connectorId = uuidv4();
 				dispatch(addConnector({
 					id: connectorId,
@@ -172,7 +176,7 @@ export function FlowModeling() {
 
 				// Computes the new line points and store them in the state
 				if (source !== null && target !== null) {
-					const newPoints = getConnectorPoints(source, target);
+					const newPoints = calcConnectorPoints(source, target);
 					dispatch(updateConnector({id: connId, points: newPoints}));
 				}
 			});
@@ -182,7 +186,7 @@ export function FlowModeling() {
 			// Updates the selector position
 			setSelectedElement(draggedElement);
 		}
-	}, [draggedElementId]);
+	}, [draggedElementId, connectors, dispatch, getElement]);
 
 	// Highlight the selected symbol
 	useEffect(() => {
@@ -212,7 +216,25 @@ export function FlowModeling() {
 		setSelectedElement(null);
 	}, [model]);
 
-	const getConnectorPoints = (from: Element, to: Element): number[] => {
+	/**
+	 * Calculates the connector points for two elements
+	 * @param from source element
+	 * @param to target element
+	 */
+	const calcConnectorPoints = (from: Element, to: Element): number[] => {
+		if (from.type === ElementType.TASK && to.type === ElementType.TASK) {
+			return rectConnectorPoints(from, to);
+		} else {
+			return [];
+		}
+	}
+
+	/**
+	 * Calculate the connector points for two circles
+	 * @param from source point
+	 * @param to target point
+	 */
+	const calcCircleConnectorPoints = (from: Element, to: Element): number[] => {
 		const dx = to.x - from.x;
 		const dy = to.y - from.y;
 		let angle = Math.atan2(-dy, dx);
@@ -225,6 +247,52 @@ export function FlowModeling() {
 			to.x - radius * Math.cos(angle),
 			to.y + radius * Math.sin(angle)
 		];
+	};
+
+	/**
+	 * Calculate the connector points between two rectangles
+	 * @param from source point
+	 * @param to target point
+	 */
+	const rectConnectorPoints = (from: Element, to: Element): number[] => {
+		const cf = { x: from.x + (from.width / 2), y: from.y + (from.height / 2) };
+		const ct = { x: to.x + (to.width / 2), y: to.y + (to.height / 2)};
+		const s = (cf.y - ct.y) / (cf.x - ct.x);
+
+		const f = rectIntersectPoint(cf, ct, from.width, from.height, s);
+		const t = rectIntersectPoint(ct, cf, to.width, to.height, s);
+
+		return [
+			f.x,
+			f.y,
+			t.x,
+			t.y
+		];
+	};
+
+	/**
+	 * Calculates one intersection point based on the source element (cf)
+	 * @param cf center of the source element
+	 * @param ct center of the target element
+	 * @param w element width
+	 * @param h element height
+	 * @param s slope
+	 */
+	const rectIntersectPoint = (cf: Point, ct: Point, w: number, h: number, s: number): Point => {
+		if ((-h / 2) <= s * (w / 2) && s * (w / 2) <= (h / 2)) {
+			// left intersect
+			if (cf.x > ct.x) return { x: cf.x - (w / 2), y: cf.y - s * (w / 2)};
+			// right intersect
+			if (cf.x < ct.x) return { x: cf.x + (w / 2), y: cf.y + s * (w / 2)};
+		}
+
+		if ((-w / 2) <= ((h / 2) / s) && ((h / 2) / s) <= (w / 2)) {
+			// top intersect
+			if (cf.y > ct.y) return { x: cf.x - ((h / 2) / s), y: cf.y - (h / 2) };
+			// bottom intersect
+			if (cf.y < ct.y) return { x: cf.x + ((h / 2) / s), y: cf.y + (h / 2) };
+		}
+		return { x: 0, y: 0 };
 	};
 
 	/*// Handles the drag movement by storing the current dragging position in the store.
@@ -328,13 +396,10 @@ export function FlowModeling() {
 					))}
 
 					{elements.map((element) => (
-						<Rect key={element.id} id={element.id} x={element.x} y={element.y} width={element.width} height={element.height}
-						      fill={"white"} stroke={"black"} strokeWidth={2} cornerRadius={10}
-						      draggable
-						      //onDragMove={throttledDragMove}
-							  onDragEnd={handleDragEnd}
-							  onClick={handleSymbolClick}
-						/>
+						<Group key={element.id} id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd}>
+							<Rect width={element.width} height={element.height} fill={"white"} stroke={"black"} strokeWidth={2} cornerRadius={10} />
+							<Text text={"test"} id={element.id} align='center' verticalAlign='middle' fontSize={18} fill={"black"} width={element.width} height={element.height} onClick={handleSymbolClick}/>
+						</Group>
 					))}
 
 					{connectors.map((conn) => (
@@ -344,22 +409,6 @@ export function FlowModeling() {
 					{selector.length >= 1 &&
 						<Line key="Selector" points={selector} stroke='#b3e5fc' strokeWidth={2} dash={[5, 5]}/>
 					}
-
-					{/*{contextMenu.isActivated && (
-								<Html>
-									<Paper sx={{p: 1, position: "absolute", top: contextMenu.top, left: contextMenu.left}}>
-										<Grid container spacing={1}>
-											<Grid item xs>
-												<IconButton aria-label="connect-tasks">
-													<TrendingFlat/>
-												</IconButton>
-											</Grid>
-										</Grid>
-									</Paper>
-								</Html>
-							)}*/}
-
-
 				</Layer>
 			</Stage>
 		</Box>
