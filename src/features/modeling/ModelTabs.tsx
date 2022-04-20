@@ -31,10 +31,8 @@ export function ModelTabs() {
 	const [currentModel, setCurrentModel] = useState<number>(0);
 	const selectedModel = useAppSelector(selectModel);
 
-	const { data: models, error, isLoading, isFetching } = useGetModelsQuery();
+	const { data: models, error, isLoading } = useGetModelsQuery();
 	const [addModel] = useAddModelMutation();
-
-	console.log(isFetching);
 
 	const handleDialogOpen = () => {
 		setOpen(true)
@@ -51,11 +49,22 @@ export function ModelTabs() {
 		}
 	};
 
-	// Creates a dummy model with the provided name and navigate to it
+	/**
+	 * Creates a dummy model with the provided name and navigate to it
+	 * @param data Name for the new model
+	 */
 	const onSubmit: SubmitHandler<ModelNameInput> = (data) => {
-		console.log(data);
 		const modelId = uuidv4();
-		const dummyModel: Model = { id: modelId, name: data.modelName, description: "", variables: [], elements: [], connectors: [], tasks: [] };
+		const dummyModel: Model = {
+			id: modelId,
+			name: data.modelName,
+			description: "",
+			variables: [{ name: "Result", type: 1}],
+			elements: [],
+			connectors: [],
+			tasks: []
+		};
+
 		dispatch(setActiveModel(dummyModel));
 		addModel(dummyModel).then(() => {
 			// Deactivate the dialog

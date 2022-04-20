@@ -1,100 +1,61 @@
-import {Box, Button, Divider, IconButton, MenuItem, TextField} from "@mui/material";
-import {Controller, useFieldArray, useForm} from "react-hook-form";
-import {Add, Delete} from "@mui/icons-material";
+import {Box, Button, Divider, Stack} from "@mui/material";
+import {useForm, FormProvider} from "react-hook-form";
 import {selectModel, updateGeneralModelData} from "./modelSlice";
 import {useAppDispatch, useAppSelector} from "../../app/hooks";
 import {useEffect} from "react";
 import {GeneralModelData} from "../../model/types";
+import {FormInput} from "../../ui/FormInput";
+import {validationRules} from "./DetailModeling";
+import {VariablesFieldArray} from "./VariablesFieldArray";
 
 export const ModelForm = () => {
 	const dispatch = useAppDispatch();
-	const { control, handleSubmit, reset } = useForm<GeneralModelData>({
+	const methods = useForm<GeneralModelData>({
 		defaultValues: {
 			id: "",
 			name: "",
 			description: "",
 			variables: [{ name: "result", type: 0 }]}
 		});
-	const { fields, append, remove } = useFieldArray({ control, name: "variables" });
 	const model = useAppSelector(selectModel);
 
+	// Resets all form fields when the model has changed
 	useEffect(() => {
-		console.log(model);
 		const modelData: GeneralModelData = {id: model.id, name: model.name, description: model.description, variables: model.variables};
-		reset(modelData);
+		methods.reset(modelData);
 	}, [model]);
 
-	const onSubmit = (data: GeneralModelData) => {
-		console.log(data);
-		dispatch(updateGeneralModelData(data));
+	/**
+	 * Submits the form and check if all rules are successfully applied, get the form field values and update the model
+	 * accordingly.
+	 */
+	const handleModelUpdate = () => {
+		methods.trigger().then(validationStatus => {
+			console.log(validationStatus);
+			console.log(methods.getValues());
+			if (validationStatus) dispatch(updateGeneralModelData(methods.getValues()));
+		});
 	};
 
-	const variableTypes = [
-		{ value: 0, label: "String" },
-		{ value: 1, label: "Json"}
-	];
-
 	return (
-		<Box sx={{ '& .MuiTextField-root': { m: 1} }}>
-			<form onSubmit={handleSubmit(onSubmit)}>
+		<Box sx={{ display: "flex", flexDirection: "column" }}>
+			<FormProvider {...methods}>
+				<Stack spacing={2}>
+					<FormInput fieldName={"id"} label={"Model Id"} disabled />
+					<FormInput fieldName={"name"} label={"Model Name"} rules={validationRules[0]}/>
+					<FormInput fieldName={"description"} label={"Description"} multiline rows={2} />
 
-				<Controller
-					name="id"
-					control={control}
-					render={({ field }) =>
-						<TextField variant="outlined" label="Model Id" disabled fullWidth {...field} />
-					}/>
+					<Divider variant="middle" />
 
-				<Controller
-					name={"name"}
-					control={control}
-					render={({ field }) =>
-						<TextField variant="outlined" label="Model Name" fullWidth {...field} />
-					}/>
+					<VariablesFieldArray />
 
-				<Controller
-					name={"description"}
-					control={control}
-					render={({ field }) =>
-						<TextField variant="outlined" label="Description" fullWidth multiline rows={2} {...field} />
-					}/>
+					<Divider variant="middle" />
+				</Stack>
 
-				<Divider variant="middle" />
-
-				{ fields.map((field, index) => (
-					<Box key={index} sx={{ display: "flex", flexDirection: "row", '& .MuiTextField-root': { width: '25ch' } }}>
-						<Controller
-							name={`variables.${index}.name`}
-							control={control}
-							render={({ field }) =>
-								<TextField variant="outlined" label="Variable" {...field} />
-							}/>
-
-						<Controller
-							name={`variables.${index}.type`}
-							control={control}
-							render={({field}) =>
-								<TextField select label="Type" {...field}>
-									{variableTypes.map((item) => (
-										<MenuItem key={item.value} value={item.value}>
-											{item.label}
-										</MenuItem>
-									))}
-								</TextField>
-							}/>
-
-						<IconButton aria-label="delete variable" onClick={() => remove(index)}>
-							<Delete />
-						</IconButton>
-					</Box>
-				))}
-
-				<IconButton aria-label="add variable" color="primary" onClick={() => append({ name: "", type: 0 })}>
-					<Add />
-				</IconButton>
-
-				<Button type="submit" aria-label="save" variant="contained">Save</Button>
-			</form>
+				<Button variant="text" onClick={handleModelUpdate}>
+					Update Model
+				</Button>
+			</FormProvider>
 		</Box>
 	);
 }

@@ -46,8 +46,8 @@ export interface InvokeTaskParams {
 }
 
 export interface AssignTaskParams {
-	value: string;
-	targetVariable: string;
+	value?: string;
+	targetVariable?: string;
 }
 
 export interface Element {

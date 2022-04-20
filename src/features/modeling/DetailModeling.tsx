@@ -1,13 +1,11 @@
-import {Box, Button, IconButton, MenuItem, Stack, Tabs, TextField} from "@mui/material";
-import {useForm, FormProvider, useFieldArray, Controller} from "react-hook-form";
+import {Box, Button} from "@mui/material";
+import {useForm, FormProvider} from "react-hook-form";
 import {useEffect, useState} from "react";
 import {selectModel, updateTask} from "./modelSlice";
 import {Task} from "../../model/types";
 import {useAppDispatch, useAppSelector} from "../../app/hooks";
 import {selectSelection} from "./selectionSlice";
 import {FormContainer} from "./FormContainer";
-import {FormInput} from "../../ui/FormInput";
-import {Add, Delete} from "@mui/icons-material";
 import {ModelForm} from "./ModelForm";
 
 export interface ValidationRules {
@@ -32,6 +30,7 @@ export function DetailModeling() {
 		(typeof task !== "undefined") ? setTaskModel(task) : setTaskModel(null);
 	}, [selectionId, model]);
 
+	// Resets all form fields when the task model changed
 	useEffect(() => {
 		console.log(taskModel);
 		if (taskModel !== null) {
@@ -39,6 +38,10 @@ export function DetailModeling() {
 		}
 	}, [taskModel, methods]);
 
+	/**
+	 * Submits the form and check if all rules are successfully applied, get the form field values and update the task
+	 * model accordingly.
+	 */
 	const handleModelUpdate = () => {
 		methods.trigger().then(validationStatus => {
 			console.log(validationStatus);
@@ -49,6 +52,7 @@ export function DetailModeling() {
 		});
 	};
 
+	// Show the model form if no task or element is selected.
 	if (taskModel === null) {
 		return (
 			<Box sx={{ display: "flex", flexDirection: "column" }}>
