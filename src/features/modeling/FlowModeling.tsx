@@ -3,7 +3,8 @@ import {
 	addConnector,
 	addElement,
 	addTask,
-	assignConnector,
+	assignConnector, removeConnector,
+	removeElement,
 	selectModel,
 	updateConnector,
 	updateElementPosition
@@ -18,6 +19,7 @@ import {useWindowSize} from "usehooks-ts";
 import {useAppDispatch, useAppSelector} from "../../app/hooks";
 import {useDeleteModelMutation, useUpdateModelMutation} from "../../app/service/modelApi";
 import {setSelection} from "./selectionSlice";
+import {QuickActionMenu, QuickActionMenuContext} from "./QuickActionMenu";
 
 interface CanvasSize {
 	width: number;
@@ -29,6 +31,16 @@ interface Point {
 	y: number;
 }
 
+interface ContextMenuParams {
+	activated: boolean;
+	top: number;
+	left: number;
+	context: QuickActionMenuContext;
+}
+
+const INITIAL_CONTEXT_MENU: ContextMenuParams = { activated: false, top: 0, left: 0, context: QuickActionMenuContext.None}
+const SNAP_BLOCK_SIZE: number = 25;
+
 export function FlowModeling() {
 	const dispatch = useAppDispatch();
 	const {width, height} = useWindowSize();
@@ -36,9 +48,11 @@ export function FlowModeling() {
 	const [addMode, setAddMode] = useState<ElementType | null>(null);
 	const [connectMode, setConnectMode] = useState<boolean>(false);
 	const [selectedElement, setSelectedElement] = useState<Element | null>(null);
+	const [selectedConnector, setSelectedConnector] = useState<Connector | null>(null);
 	const [draggedElementId, setDraggedElementId] = useState<string>("");
 
-	const [selector, setSelector] = useState<number[]>([]);
+	const [elementSelection, setElementSelection] = useState<number[]>([]);
+	const [contextMenu, setContextMenu] = useState<ContextMenuParams>(INITIAL_CONTEXT_MENU);
 
 	const stageRef = useRef<HTMLDivElement>(null);
 
@@ -53,9 +67,6 @@ export function FlowModeling() {
 
 	// Handles creation of new elements or deselection of elements
 	const handleStageClick = (e: any) => {
-		// Disable context menu
-		// setContextMenu(INITIAL_CONTEXT_MENU);
-
 		// Place the respective element in the canvas
 		if (addMode !== null) {
 			const pointerPosition = e.currentTarget.getPointerPosition();
@@ -65,8 +76,8 @@ export function FlowModeling() {
 			// Create a new element on the click position based on the symbol type
 			dispatch(addElement({
 				id: id,
-				x: pointerPosition.x,
-				y: pointerPosition.y,
+				x: Math.round(pointerPosition.x / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE,
+				y: Math.round(pointerPosition.y / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE,
 				width: 100,
 				height: 50,
 				type: addMode,
@@ -84,7 +95,7 @@ export function FlowModeling() {
 					const dummyParams: InvokeTaskParams = {raml: "", resource: "", inputVariable: "", targetVariable: ""};
 					dispatch(addTask({
 						id: id,
-						description: "Test",
+						description: `Invoke Task ${id}`,
 						type: TaskType.INVOKE_TASK,
 						params: dummyParams
 					}));
@@ -94,11 +105,14 @@ export function FlowModeling() {
 			// Reset the mode (with null)
 			setAddMode(null);
 		} else {
-			// Deselect when the user clicks on empty area
+			// Deselect element/connector and disable context menu when the user clicks on an empty area
 			const clickedOnEmpty = e.target === e.target.getStage();
 			if (clickedOnEmpty) {
 				setSelectedElement(null);
+				setSelectedConnector(null);
+
 				dispatch(setSelection(""));
+				setContextMenu(INITIAL_CONTEXT_MENU);
 			}
 		}
 	};
@@ -107,12 +121,13 @@ export function FlowModeling() {
 	const handleSymbolClick = (e: any) => {
 		const elementId = e.target.id();
 		const element: Element | null = getElement(elementId);
-		console.log("Select: " + elementId, element);
 
 		if (element !== null) {
 			// Store the selected symbol if connectMode is activated
 			setSelectedElement(element);
 			dispatch(setSelection(elementId));
+
+			setContextMenu({ activated: true, top: element.y, left: (element.x + element.width + 8), context: QuickActionMenuContext.Element });
 
 			if (selectedElement !== null && connectMode) {
 				// Compute the Connector Points and store the connector, so it can be drawn
@@ -138,18 +153,78 @@ export function FlowModeling() {
 	// Updates the position and the selector position of the dragged element
 	const handleDragEnd = (e: any) => {
 		const elementId = e.target.id();
-		dispatch(updateElementPosition({id: elementId, x: e.target.x(), y: e.target.y()}));
+		const snappingPosition: Point = {
+			x: Math.round(e.target.x() / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE,
+			y: Math.round(e.target.y() / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE
+		};
+		dispatch(updateElementPosition({id: elementId, x: snappingPosition.x, y: snappingPosition.y}));
 		setDraggedElementId(elementId);
 	};
 
 	const getElement = (elementId: string): Element | null => {
 		const mergedElements = elements.concat(startElement, endElement);
 		const element = mergedElements.find((element) => element.id === elementId);
-		if (typeof element !== "undefined") {
-			return element;
-		} else {
-			return null;
+		return (typeof element !== "undefined") ? element : null;
+	};
+
+	/**
+	 * Creates a task element
+	 */
+	const createTask = () => {
+		if (selectedElement !== null) {
+			// Generate a "global" id for this task
+			const id = uuidv4();
+
+			// Create a new element on the right of the existing element
+			const newElement: Element = {
+				id: id,
+				x: selectedElement.x + selectedElement.width + 32,
+				y: selectedElement.y,
+				width: 100,
+				height: 50,
+				type: ElementType.TASK,
+				connectors: []
+			};
+			dispatch(addElement(newElement));
+
+			const dummyParams: InvokeTaskParams = {raml: "", resource: "", inputVariable: "", targetVariable: ""};
+			dispatch(addTask({
+				id: id,
+				description: `Invoke Task ${id}`,
+				type: TaskType.INVOKE_TASK,
+				params: dummyParams
+			}));
+
+			// Compute the Connector Points and store the connector, so it can be drawn
+			const points = calcConnectorPoints(selectedElement, newElement);
+			const connectorId = uuidv4();
+			dispatch(addConnector({
+				id: connectorId,
+				points: points,
+				source: selectedElement.id,
+				target: newElement.id
+			}));
+
+			// Assign the connector to the source and target element
+			dispatch(assignConnector({elementId: selectedElement.id, connectorId: connectorId}));
+			dispatch(assignConnector({elementId: newElement.id, connectorId: connectorId}));
 		}
+	};
+
+	/**
+	 * Removes the selected element/connector from the model
+	 */
+	const deleteElement = () => {
+		if (contextMenu.context === QuickActionMenuContext.Element && selectedElement !== null) {
+			// Removes the selection
+			setSelectedElement(null);
+			dispatch(removeElement(selectedElement));
+		} else if (contextMenu.context === QuickActionMenuContext.Connector && selectedConnector !== null) {
+			// Removes the selection
+			setSelectedConnector(null);
+			dispatch(removeConnector(selectedConnector));
+		}
+		setContextMenu(INITIAL_CONTEXT_MENU);
 	};
 
 	// Connectors must be automatically adjusted after an element has been dragged
@@ -196,18 +271,18 @@ export function FlowModeling() {
 				case ElementType.START_EVENT:
 				case ElementType.END_EVENT:
 					const r = (height/2) + 8;
-					setSelector([x - r, y + r, x + r, y + r, x + r, y - r, x - r, y - r, x - r, y + r]);
+					setElementSelection([x - r, y + r, x + r, y + r, x + r, y - r, x - r, y - r, x - r, y + r]);
 					break;
 
 				case ElementType.TASK:
-					const w = width + 8;
-					const h = height + 8;
-					setSelector([x - 8, y - 8, x + w, y - 8, x + w, y + h, x - 8, y + h, x - 8 , y - 8]);
+					const w = width + 4;
+					const h = height + 4;
+					setElementSelection([x - 4, y - 4, x + w, y - 4, x + w, y + h, x - 4, y + h, x - 4 , y - 4]);
 					break;
 			}
 		} else {
 			// Disables the selector when no element is currently selected
-			setSelector([]);
+			setElementSelection([]);
 		}
 	}, [selectedElement]);
 
@@ -295,28 +370,22 @@ export function FlowModeling() {
 		return { x: 0, y: 0 };
 	};
 
-	/*// Handles the drag movement by storing the current dragging position in the store.
-	const handleDragMove = (e: any) => {
-		setDraggingTask({id: e.target.id(), x: e.target.x(), y: e.target.y()});
-	};
-
-	// Throttles the drag move to reduce the amount of renders and computations
-	const throttledDragMove = useMemo(() => {
-		return throttle(handleDragMove, 50);
-	}, []);*/
-
 	useLayoutEffect(() => {
 		if (stageRef.current) {
 			setCanvasSize({width: stageRef.current.offsetWidth, height: 600});
 		}
-		// setCanvasSize({ width: 600, height: 600 });
 	}, [width, height]);
 
+	/**
+	 * Saves the changed model on the server
+	 */
 	const handleUpdateModel = () => {
-		console.log(model);
 		updateModel(model).then((result) => console.log(result));
 	};
 
+	/**
+	 * Deletes the model on the server
+	 */
 	const handleDeleteModel = () => {
 		deleteModel(model.id).then((result) => console.log(result));
 	}
@@ -335,7 +404,7 @@ export function FlowModeling() {
 				height={canvasSize.height}
 				onMouseDown={handleStageClick}
 			>
-				<Layer>
+				<Layer imageSmoothingEnabled={true}>
 					<Html>
 						<Paper sx={{p: 1, position: 'absolute', top: '8px', left: '8px'}}>
 							<Stack spacing={1}>
@@ -403,11 +472,25 @@ export function FlowModeling() {
 					))}
 
 					{connectors.map((conn) => (
-						<Arrow key={conn.id} points={conn.points} fill={"black"} stroke={"black"}/>
+						<Arrow key={conn.id} id={conn.id} points={conn.points} fill={"black"} stroke={"black"} onClick={handleConnectorClick} hitStrokeWidth={24}/>
 					))}
 
-					{selector.length >= 1 &&
-						<Line key="Selector" points={selector} stroke='#b3e5fc' strokeWidth={2} dash={[5, 5]}/>
+					{elementSelection.length >= 1 &&
+						<Line key="Selector" points={elementSelection} stroke='#b3e5fc' strokeWidth={2} dash={[5, 5]}/>
+					}
+
+					{selectedConnector !== null && selectedConnector!.points.length >= 1 &&
+						<Arrow key="ConnectorSelector" points={selectedConnector!.points} fill='#29b6f6' stroke='#29b6f6'/>
+					}
+
+					{contextMenu.activated &&
+						<Html divProps={{style: {position: 'absolute', inset: `${contextMenu.top}px auto auto ${contextMenu.left}px`}}}>
+							<QuickActionMenu
+								onDelete={deleteElement}
+								onTaskCreate={createTask}
+								context={contextMenu.context}
+							/>
+						</Html>
 					}
 				</Layer>
 			</Stage>

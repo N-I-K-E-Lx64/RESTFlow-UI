@@ -32,7 +32,6 @@ export function DetailModeling() {
 
 	// Resets all form fields when the task model changed
 	useEffect(() => {
-		console.log(taskModel);
 		if (taskModel !== null) {
 			methods.reset(taskModel);
 		}
@@ -44,8 +43,6 @@ export function DetailModeling() {
 	 */
 	const handleModelUpdate = () => {
 		methods.trigger().then(validationStatus => {
-			console.log(validationStatus);
-			console.log(methods.getValues());
 			if (validationStatus && taskModel !== null) {
 				dispatch(updateTask(methods.getValues()));
 			}

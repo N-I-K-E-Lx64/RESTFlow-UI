@@ -35,6 +35,19 @@ export const modelSlice = createSlice({
 		addElement: (state, action: PayloadAction<Element>) => {
 			state.model.elements.push(action.payload);
 		},
+		removeElement: (state, action: PayloadAction<Element>) => {
+			const { id, connectors } = action.payload;
+			const index = state.model.elements.findIndex((element: Element) => element.id === id);
+			if (index !== -1) {
+				state.model.elements.splice(index, 1);
+				connectors.forEach((connectorId) => {
+					const connIndex = state.model.connectors.findIndex((connector: Connector) => connector.id === connectorId);
+					if (connIndex !== -1) {
+						state.model.connectors.splice(index, 1);
+					}
+				});
+			}
+		},
 		updateElementPosition: (state, action: PayloadAction<PositionUpdate>) => {
 			const { id, x, y } = action.payload;
 			const index = state.model.elements.findIndex((element: Element) => element.id === id);
@@ -60,6 +73,22 @@ export const modelSlice = createSlice({
 				state.model.connectors[index].points = points;
 			}
 		},
+		removeConnector: (state, action: PayloadAction<Connector>) => {
+			// The connector must be removed from the model connectors array as well as from the connector array from each element.
+			const { id, source, target } = action.payload;
+			const index = state.model.connectors.findIndex((connector: Connector) => connector.id === id);
+			if (index !== -1) {
+				state.model.connectors.splice(index, 1);
+			}
+			const sourceIndex = state.model.elements.findIndex((element: Element) => element.id === source);
+			const targetIndex = state.model.elements.findIndex((element: Element) => element.id === target);
+			if (sourceIndex !== -1 && targetIndex !== -1) {
+				const sourceConnectorIndex = state.model.elements[sourceIndex].connectors.findIndex((connectorId) => connectorId === id);
+				const targetConnectorIndex = state.model.elements[targetIndex].connectors.findIndex((connectorId) => connectorId === id);
+				state.model.elements[sourceIndex].connectors.splice(sourceConnectorIndex, 1);
+				state.model.elements[sourceIndex].connectors.splice(targetConnectorIndex, 1);
+			}
+		},
 		addTask: (state, action: PayloadAction<Task>) => {
 			state.model.tasks.push(action.payload);
 		},
@@ -77,10 +106,12 @@ export const {
 	setActiveModel,
 	updateGeneralModelData,
 	addElement,
+	removeElement,
 	updateElementPosition,
-	assignConnector,
-	updateConnector,
 	addConnector,
+	updateConnector,
+	assignConnector,
+	removeConnector,
 	addTask,
 	updateTask
 } = modelSlice.actions;
