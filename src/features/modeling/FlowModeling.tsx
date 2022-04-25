@@ -322,9 +322,37 @@ export function FlowModeling() {
 		} else if (from.type === ElementType.TASK && to.type === ElementType.END_EVENT) {
 			return eventConnectorPoints(to, from, false);
 		} else {
+			// TODO : Fehlermeldung!
 			return [];
 		}
 	}
+
+	/**
+	 * Calculate the connector points between a task and an event (start-/ end-event)
+	 * @param event Element, representing the event
+	 * @param task Element, representing the task
+	 * @param direction The direction of the connector (e.g. event-task -> true, task-event -> false)
+	 */
+	const eventConnectorPoints = (event: Element, task: Element, direction: boolean): number[] => {
+		const taskCenterPoint: Point = { x: task.x + (task.width / 2), y: task.y + (task.height / 2)};
+		const eventCenterPoint: Point = { x: event.x, y: event.y };
+		if (direction) {
+			// Task connector point
+			const slope = (event.y - taskCenterPoint.y) / (event.x - taskCenterPoint.x);
+			const taskConnectorPoint = rectIntersectPoint(taskCenterPoint, eventCenterPoint, task.width, task.height, slope);
+			// Start-event connector point
+			const eventConnectorPoint = circleConnectorPoints(eventCenterPoint, taskCenterPoint, event.height / 3).slice(0,2);
+			return eventConnectorPoint.concat([taskConnectorPoint.x, taskConnectorPoint.y]);
+		} else {
+			// Task connector point
+			const slope = (taskCenterPoint.y - event.y) / (taskCenterPoint.x - event.x);
+			const taskConnectorPoint = rectIntersectPoint(taskCenterPoint, eventCenterPoint, task.width, task.height, slope);
+			// Start-event connector point
+			const eventConnectorPoint = circleConnectorPoints(taskCenterPoint, eventCenterPoint, event.height / 3).slice(2,4);
+			console.log(taskConnectorPoint, eventConnectorPoint);
+			return [taskConnectorPoint.x, taskConnectorPoint.y].concat(eventConnectorPoint);
+		}
+	};
 
 	/**
 	 * Calculate the connector points for two circles
