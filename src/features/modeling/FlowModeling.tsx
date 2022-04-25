@@ -3,7 +3,8 @@ import {
 	addConnector,
 	addElement,
 	addTask,
-	assignConnector, removeConnector,
+	assignConnector,
+	removeConnector,
 	removeElement,
 	selectModel,
 	updateConnector,
@@ -65,7 +66,20 @@ export function FlowModeling() {
 	const elements = model.elements.filter((element) => element.type !== ElementType.START_EVENT && element.type !== ElementType.END_EVENT);
 	const connectors = model.connectors;
 
-	// Handles creation of new elements or deselection of elements
+	/*let snappingGrid : number[][] = [];
+
+	for (var i = 0; i < width / SNAP_BLOCK_SIZE; i++) {
+		snappingGrid.push([ Math.round(i * SNAP_BLOCK_SIZE) + 0.5, 0, Math.round(i * SNAP_BLOCK_SIZE) + 0.5, height]);
+	}
+
+	for (var j = 0; j < height / SNAP_BLOCK_SIZE; j++) {
+		snappingGrid.push([0, Math.round(j * SNAP_BLOCK_SIZE), width, Math.round(j * SNAP_BLOCK_SIZE)]);
+	}*/
+
+	/**
+	 * Handles creation of new elements or deselection of elements
+	 * @param e Konva Click event
+	 */
 	const handleStageClick = (e: any) => {
 		// Place the respective element in the canvas
 		if (addMode !== null) {
@@ -81,6 +95,7 @@ export function FlowModeling() {
 				width: 100,
 				height: 50,
 				type: addMode,
+				text: 'Task',
 				connectors: []
 			}));
 
@@ -95,6 +110,7 @@ export function FlowModeling() {
 					const dummyParams: InvokeTaskParams = {raml: "", resource: "", inputVariable: "", targetVariable: ""};
 					dispatch(addTask({
 						id: id,
+						title: 'Invoke Task',
 						description: `Invoke Task ${id}`,
 						type: TaskType.INVOKE_TASK,
 						params: dummyParams
@@ -162,7 +178,7 @@ export function FlowModeling() {
 	};
 
 	const getElement = (elementId: string): Element | null => {
-		const mergedElements = elements.concat(startElement, endElement);
+		const mergedElements: Element[] = elements.concat(startElement, endElement);
 		const element = mergedElements.find((element) => element.id === elementId);
 		return (typeof element !== "undefined") ? element : null;
 	};
@@ -183,6 +199,7 @@ export function FlowModeling() {
 				width: 100,
 				height: 50,
 				type: ElementType.TASK,
+				text: 'Invoke Task',
 				connectors: []
 			};
 			dispatch(addElement(newElement));
@@ -190,6 +207,7 @@ export function FlowModeling() {
 			const dummyParams: InvokeTaskParams = {raml: "", resource: "", inputVariable: "", targetVariable: ""};
 			dispatch(addTask({
 				id: id,
+				title: 'Invoke Task',
 				description: `Invoke Task ${id}`,
 				type: TaskType.INVOKE_TASK,
 				params: dummyParams
@@ -299,6 +317,10 @@ export function FlowModeling() {
 	const calcConnectorPoints = (from: Element, to: Element): number[] => {
 		if (from.type === ElementType.TASK && to.type === ElementType.TASK) {
 			return rectConnectorPoints(from, to);
+		} else if (from.type === ElementType.START_EVENT && to.type === ElementType.TASK) {
+			return eventConnectorPoints(from, to, true);
+		} else if (from.type === ElementType.TASK && to.type === ElementType.END_EVENT) {
+			return eventConnectorPoints(to, from, false);
 		} else {
 			return [];
 		}
@@ -308,13 +330,12 @@ export function FlowModeling() {
 	 * Calculate the connector points for two circles
 	 * @param from source point
 	 * @param to target point
+	 * @param radius distance between the circle center point and the connector point
 	 */
-	const calcCircleConnectorPoints = (from: Element, to: Element): number[] => {
+	const circleConnectorPoints = (from: Point, to: Point, radius: number): number[] => {
 		const dx = to.x - from.x;
 		const dy = to.y - from.y;
 		let angle = Math.atan2(-dy, dx);
-
-		const radius = 50;
 
 		return [
 			from.x - radius * Math.cos(angle + Math.PI),
@@ -447,16 +468,16 @@ export function FlowModeling() {
 					</Html>
 
 					{startElement.map((element) => (
-						<Circle key={element.id} id={element.id} x={element.x} y={element.y} radius={element.height / 2}
+						<Circle key={element.id} id={element.id} x={element.x} y={element.y} radius={element.height / 3}
 						        fill={"white"} stroke={"black"} strokeWidth={2}
-								draggable
+						        draggable
 						        onDragEnd={handleDragEnd}
 						        onClick={handleSymbolClick}
 						/>
 					))}
 
 					{endElement.map((element) => (
-						<Circle key={element.id} id={element.id} x={element.x} y={element.y} radius={element.height / 2}
+						<Circle key={element.id} id={element.id} x={element.x} y={element.y} radius={element.height / 3}
 						        fill={"white"} stroke={"black"} strokeWidth={5}
 						        draggable
 						        onDragEnd={handleDragEnd}
@@ -467,7 +488,7 @@ export function FlowModeling() {
 					{elements.map((element) => (
 						<Group key={element.id} id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd}>
 							<Rect width={element.width} height={element.height} fill={"white"} stroke={"black"} strokeWidth={2} cornerRadius={10} />
-							<Text text={"test"} id={element.id} align='center' verticalAlign='middle' fontSize={18} fill={"black"} width={element.width} height={element.height} onClick={handleSymbolClick}/>
+							<Text text={element.text} id={element.id} align='center' verticalAlign='middle' fontSize={14} fill={"black"} width={element.width} height={element.height} onClick={handleSymbolClick}/>
 						</Group>
 					))}
 
@@ -492,6 +513,10 @@ export function FlowModeling() {
 							/>
 						</Html>
 					}
+
+					{/*{snappingGrid.map((snapLine, index) => (
+						<Line key={index} points={snapLine} stroke="#ddd" strokeWidth={1} />
+					))}*/}
 				</Layer>
 			</Stage>
 		</Box>

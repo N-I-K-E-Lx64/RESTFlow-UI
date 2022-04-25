@@ -26,6 +26,7 @@ export const FormContainer = ({ task }: FormContainerProps) => {
 	return (
 		<Stack spacing={2}>
 			<FormInput fieldName={"id"} label={"Task Id"} disabled />
+			<FormInput fieldName={"title"} label={"Task Name"} />
 			<FormInput fieldName={"description"} label={"Task Description"} multiline rows={2} />
 			<FormSelect fieldName={"type"} label={"Task Type"} options={taskTypes} test={handleTaskTypeChange}/>
 

@@ -33,6 +33,7 @@ export enum VariableType {
 
 export interface Task {
 	id: string;
+	title: string;
 	description: string;
 	type: TaskType;
 	params: InvokeTaskParams | AssignTaskParams;
@@ -57,6 +58,7 @@ export interface Element {
 	width: number;
 	height: number;
 	type: ElementType;
+	text: string;
 	connectors: string[];
 }
 
