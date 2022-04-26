@@ -21,6 +21,8 @@ import {useAppDispatch, useAppSelector} from "../../app/hooks";
 import {useDeleteModelMutation, useUpdateModelMutation} from "../../app/service/modelApi";
 import {setSelection} from "./selectionSlice";
 import {QuickActionMenu, QuickActionMenuContext} from "./QuickActionMenu";
+import algebra from "algebra.js";
+import Expression = algebra.Expression;
 
 interface CanvasSize {
 	width: number;
@@ -166,7 +168,25 @@ export function FlowModeling() {
 		}
 	};
 
-	// Updates the position and the selector position of the dragged element
+	/**
+	 * Handles the click on a connector.
+	 * @param e Konva click event
+	 */
+	const handleConnectorClick = (e: any) => {
+		const connector = connectors.find((connector) => connector.id === e.target.id());
+		if (typeof connector !== "undefined") {
+			// Highlight the selected connector
+			setSelectedConnector(connector);
+			// Calculates the position of the context menu
+			const positionCM: Point = connectorContextMenuPosition(connector);
+			setContextMenu({ activated: true, top: (positionCM.y - 20), left: (positionCM.x - 20), context: QuickActionMenuContext.Connector });
+		}
+	};
+
+	/**
+	 * Updates the position and the selector position of the dragged element
+	 * @param e Konva drag event
+	 */
 	const handleDragEnd = (e: any) => {
 		const elementId = e.target.id();
 		const snappingPosition: Point = {
@@ -310,6 +330,38 @@ export function FlowModeling() {
 	}, [model]);
 
 	/**
+	 * Calculates the correct context menu position, when selecting a connector.
+	 * @param connector Connector
+	 */
+	const connectorContextMenuPosition = (connector: Connector): Point => {
+		const [ x1, y1, x2, y2 ] = connector.points;
+		// Compute the directional vector between the two connector points (p1, p2);
+		const directionalVec = { x: x2 - x1, y: y2 - y1 };
+		// Compute the normal vector of a line
+		const normalVec = { x: -directionalVec.y, y: directionalVec.x };
+		// The mid of the directional vector (anchor point for the normal vector)
+		const midPoint = { x: x1 + 0.5 * directionalVec.x, y: y1 + 0.5 * directionalVec.y };
+		// Equation to calculate parameter t for the line equation.
+		// Here a constant distance between the center of the line and the context menu position is specified.
+		const eq = algebra.parse(`((${normalVec.x} * t)^2 + (${normalVec.y} * t)^2)^(0.5) = 20`);
+		if (!(eq instanceof Expression)) {
+			// Equation is solved
+			const solveResult = eq.solveFor('t');
+			if (typeof solveResult !== "undefined") {
+				const result = solveResult as number[];
+				// If the connector points to the left, we need to use the negative value for t, so the context menu is
+				// always below the arrow.
+				const t = (directionalVec.x < 0) ? result[0] : result[1];
+				return {
+					x: midPoint.x + (t * 10) * normalVec.x,
+					y: midPoint.y + (t * 10) * normalVec.y
+				};
+			}
+		}
+		return { x: 0, y: 0 };
+	};
+
+	/**
 	 * Calculates the connector points for two elements
 	 * @param from source element
 	 * @param to target element
@@ -349,7 +401,6 @@ export function FlowModeling() {
 			const taskConnectorPoint = rectIntersectPoint(taskCenterPoint, eventCenterPoint, task.width, task.height, slope);
 			// Start-event connector point
 			const eventConnectorPoint = circleConnectorPoints(taskCenterPoint, eventCenterPoint, event.height / 3).slice(2,4);
-			console.log(taskConnectorPoint, eventConnectorPoint);
 			return [taskConnectorPoint.x, taskConnectorPoint.y].concat(eventConnectorPoint);
 		}
 	};

@@ -3783,6 +3783,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/algebra.js@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@types/algebra.js@npm:0.2.2"
+  checksum: d17478576b9b746ed711fa3c01d55cce9e49c200a5025f2fa5f1f54e456e577aeabb45c793ee4bee2404032f114ae427df149c205b64aeae2db0aeb6cdc94188
+  languageName: node
+  linkType: hard
+
 "@types/aria-query@npm:^4.2.0":
   version: 4.2.2
   resolution: "@types/aria-query@npm:4.2.2"
@@ -4835,6 +4842,13 @@ __metadata:
     require-from-string: ^2.0.2
     uri-js: ^4.2.2
   checksum: 3594728ef1e31219ef97bfacb203d0d72db8ad5c35d6d0578e38ee453e4537c2bf927dad144bb84b0c893f661d71b58337d4643e8ee2f2a6e1d63b041c92fe82
+  languageName: node
+  linkType: hard
+
+"algebra.js@npm:^0.2.6":
+  version: 0.2.6
+  resolution: "algebra.js@npm:0.2.6"
+  checksum: 81ddcc1854248b0dfbbe113bae1caf2acbf02a17a3df15bf34543fa8772d3efd6f2854cc4cc9fc1a8e881efd7e454fcc9d90ed2f443a0d193f7c114588b2f1aa
   languageName: node
   linkType: hard
 
@@ -12606,6 +12620,7 @@ __metadata:
     "@testing-library/jest-dom": ^5.16.2
     "@testing-library/react": ^12.1.4
     "@testing-library/user-event": ^13.5.0
+    "@types/algebra.js": ^0.2.2
     "@types/jest": ^27.4.1
     "@types/lodash.throttle": ^4.1.6
     "@types/node": ^17.0.21
@@ -12614,6 +12629,7 @@ __metadata:
     "@types/react-redux": ^7.1.23
     "@types/react-router-dom": ^5.3.3
     "@types/uuid": ^8.3.4
+    algebra.js: ^0.2.6
     assert: ^2.0.0
     konva: ^8.3.3
     lodash.throttle: ^4.1.1
