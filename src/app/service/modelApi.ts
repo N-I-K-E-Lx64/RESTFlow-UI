@@ -14,7 +14,7 @@ const modelApi = restflowAPI.injectEndpoints({
 		addModel: build.mutation<Model, Partial<Model>>({
 			query: (body) => ({
 				url: '/model',
-				method: 'POST',
+				method: 'PUT',
 				body
 			}),
 			invalidatesTags: ['Model']

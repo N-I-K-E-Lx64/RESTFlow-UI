@@ -19,7 +19,7 @@ export function FormInput(props: FormInputProps) {
 			<Controller
 				name={props.fieldName}
 				control={control}
-				defaultValue=""
+				defaultValue={""}
 				rules={props.rules}
 				render={({ field, formState }) =>
 					<TextField

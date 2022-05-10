@@ -6,7 +6,7 @@ export interface FormSelectProps {
 	fieldName: string;
 	label: string;
 	options: { value: number, label: string}[];
-	test?: (event: ChangeEvent<HTMLInputElement>) => void;
+	onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function FormSelect(props: FormSelectProps) {
@@ -21,7 +21,7 @@ export function FormSelect(props: FormSelectProps) {
 				render={({field}) =>
 					<TextField select fullWidth label={props.label} {...field} onChange={(value: ChangeEvent<HTMLInputElement>) => {
 						field.onChange(value);
-						if (typeof props.test !== "undefined") props.test(value);
+						if (typeof props.onChange !== "undefined") props.onChange(value);
 					}}>
 						{props.options.map((item) => (
 							<MenuItem key={item.value} value={item.value}>

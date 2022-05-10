@@ -10,7 +10,7 @@ import {
 	updateConnector,
 	updateElementPosition
 } from "./modelSlice";
-import {Connector, Element, ElementType, InvokeTaskParams, Model, TaskType} from "../../model/types";
+import {Connector, Element, ElementType, Model, TaskType} from "../../model/types";
 import {useEffect, useLayoutEffect, useRef, useState} from "react";
 import {Box, Divider, IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack} from "@mui/material";
 import {Arrow, Circle, Group, Layer, Line, Rect, Stage, Text} from "react-konva";
@@ -109,13 +109,11 @@ export function FlowModeling() {
 					break;
 				}
 				case ElementType.TASK: {
-					const dummyParams: InvokeTaskParams = {raml: "", resource: "", inputVariable: "", targetVariable: ""};
 					dispatch(addTask({
 						id: id,
 						title: 'Invoke Task',
 						description: `Invoke Task ${id}`,
 						type: TaskType.INVOKE_TASK,
-						params: dummyParams
 					}));
 				}
 			}
@@ -224,13 +222,11 @@ export function FlowModeling() {
 			};
 			dispatch(addElement(newElement));
 
-			const dummyParams: InvokeTaskParams = {raml: "", resource: "", inputVariable: "", targetVariable: ""};
 			dispatch(addTask({
 				id: id,
 				title: 'Invoke Task',
 				description: `Invoke Task ${id}`,
 				type: TaskType.INVOKE_TASK,
-				params: dummyParams
 			}));
 
 			// Compute the Connector Points and store the connector, so it can be drawn
@@ -480,6 +476,7 @@ export function FlowModeling() {
 	 * Saves the changed model on the server
 	 */
 	const handleUpdateModel = () => {
+		console.log(model);
 		updateModel(model).then((result) => console.log(result));
 	};
 

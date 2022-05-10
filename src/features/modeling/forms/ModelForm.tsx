@@ -1,12 +1,12 @@
 import {Box, Button, Divider, Stack} from "@mui/material";
 import {useForm, FormProvider} from "react-hook-form";
-import {selectModel, updateGeneralModelData} from "./modelSlice";
-import {useAppDispatch, useAppSelector} from "../../app/hooks";
+import {selectModel, updateGeneralModelData} from "../modelSlice";
+import {useAppDispatch, useAppSelector} from "../../../app/hooks";
 import {useEffect} from "react";
-import {GeneralModelData} from "../../model/types";
-import {FormInput} from "../../ui/FormInput";
-import {validationRules} from "./DetailModeling";
-import {VariablesFieldArray} from "./VariablesFieldArray";
+import {GeneralModelData} from "../../../model/types";
+import {FormInput} from "../../../ui/FormInput";
+import {validationRules} from "../DetailModeling";
+import {VariablesFieldArray} from "../VariablesFieldArray";
 
 export const ModelForm = () => {
 	const dispatch = useAppDispatch();
@@ -31,8 +31,6 @@ export const ModelForm = () => {
 	 */
 	const handleModelUpdate = () => {
 		methods.trigger().then(validationStatus => {
-			console.log(validationStatus);
-			console.log(methods.getValues());
 			if (validationStatus) dispatch(updateGeneralModelData(methods.getValues()));
 		});
 	};

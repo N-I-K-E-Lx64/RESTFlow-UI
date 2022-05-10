@@ -36,21 +36,24 @@ export interface Task {
 	title: string;
 	description: string;
 	type: TaskType;
-	params: InvokeTaskParams | AssignTaskParams;
+	invokeParams?: InvokeTaskParams;
+	assignParams?: AssignTaskParams;
 }
 
-export interface InvokeTaskParams {
-	raml: string;
-	resource: string;
-	inputVariable: string;
-	targetVariable: string;
+export type InvokeTaskParams = {
+	inputType?: number;
+	raml?: string;
+	resource?: string;
+	inputVariable?: string;
+	targetVariable?: string;
 }
 
-export interface AssignTaskParams {
+export type AssignTaskParams = {
 	value?: string;
 	targetVariable?: string;
 }
 
+// TODO: Text must be optional!
 export interface Element {
 	id: string;
 	x: number;

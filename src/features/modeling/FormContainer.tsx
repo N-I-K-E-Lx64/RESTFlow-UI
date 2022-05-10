@@ -2,16 +2,20 @@ import {Task, TaskType} from "../../model/types";
 import {Divider, Stack} from "@mui/material";
 import {FormInput} from "../../ui/FormInput";
 import {FormSelect} from "../../ui/FormSelect";
-import {InvokeForm} from "./InvokeForm";
-import {AssignForm} from "./AssignForm";
-import {ChangeEvent, useState} from "react";
+import {InvokeForm} from "./forms/InvokeForm";
+import {AssignForm} from "./forms/AssignForm";
+import {ChangeEvent, useEffect, useState} from "react";
 
-export interface FormContainerProps {
+interface NestedFormProps {
 	task: Task;
 }
 
-export const FormContainer = ({ task }: FormContainerProps) => {
+export const FormContainer = ({ task }: NestedFormProps) => {
 	const [taskType, setTaskType] = useState<number>(0);
+
+	useEffect(() => {
+		setTaskType(task.type);
+	}, [task]);
 
 	const handleTaskTypeChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const newTaskType = Number(event.target.value);
@@ -28,7 +32,7 @@ export const FormContainer = ({ task }: FormContainerProps) => {
 			<FormInput fieldName={"id"} label={"Task Id"} disabled />
 			<FormInput fieldName={"title"} label={"Task Name"} />
 			<FormInput fieldName={"description"} label={"Task Description"} multiline rows={2} />
-			<FormSelect fieldName={"type"} label={"Task Type"} options={taskTypes} test={handleTaskTypeChange}/>
+			<FormSelect fieldName={"type"} label={"Task Type"} options={taskTypes} onChange={handleTaskTypeChange}/>
 
 			<Divider variant="middle" />
 

@@ -1,12 +1,12 @@
 import {Box, Button} from "@mui/material";
-import {useForm, FormProvider} from "react-hook-form";
+import {FormProvider, useForm} from "react-hook-form";
 import {useEffect, useState} from "react";
 import {selectModel, updateTask} from "./modelSlice";
-import {Task} from "../../model/types";
+import {Task, TaskType} from "../../model/types";
 import {useAppDispatch, useAppSelector} from "../../app/hooks";
 import {selectSelection} from "./selectionSlice";
 import {FormContainer} from "./FormContainer";
-import {ModelForm} from "./ModelForm";
+import {ModelForm} from "./forms/ModelForm";
 
 export interface ValidationRules {
 	required?: { value: boolean, message: string };
@@ -27,13 +27,15 @@ export function DetailModeling() {
 	// Update the task model, when the user changes the selection
 	useEffect(() => {
 		const task = model.tasks.find((task) => task.id === selectionId);
+		console.log(task);
 		(typeof task !== "undefined") ? setTaskModel(task) : setTaskModel(null);
 	}, [selectionId, model]);
 
 	// Resets all form fields when the task model changed
 	useEffect(() => {
 		if (taskModel !== null) {
-			methods.reset(taskModel);
+			methods.reset({});
+			methods.reset(taskModel, { keepValues: false });
 		}
 	}, [taskModel, methods]);
 
@@ -44,7 +46,17 @@ export function DetailModeling() {
 	const handleModelUpdate = () => {
 		methods.trigger().then(validationStatus => {
 			if (validationStatus && taskModel !== null) {
-				dispatch(updateTask(methods.getValues()));
+				const task: Task = methods.getValues();
+				/* Delete unnecessary attributes (e.g. when the task type is switched to "ASSIGN_TASK" the invokeParams
+				attribute is no longer needed!*/
+				if (task.type === TaskType.INVOKE_TASK && typeof task.assignParams !== "undefined") {
+					delete task.assignParams;
+				}
+				if (task.type === TaskType.ASSIGN_TASK && typeof task.invokeParams !== "undefined") {
+					delete task.invokeParams;
+				}
+				console.log(task);
+				dispatch(updateTask(task));
 			}
 		});
 	};

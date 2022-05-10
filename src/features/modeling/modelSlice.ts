@@ -96,7 +96,7 @@ export const modelSlice = createSlice({
 			const { id, title } = action.payload;
 			const index = state.model.tasks.findIndex((task: Task) => task.id === id);
 			if (index !== -1) {
-				state.model.tasks[index] = {...state.model.tasks[index], ...action.payload};
+				state.model.tasks[index] = action.payload;
 			}
 
 			const elementIndex = state.model.elements.findIndex((element: Element) => element.id === id);

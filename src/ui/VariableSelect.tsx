@@ -16,7 +16,7 @@ export const VariableSelect = (props : VariableSelectProps) => {
 			<Controller
 				name={props.fieldName}
 				control={control}
-				defaultValue={""}
+				defaultValue={0}
 				render={({field}) =>
 					<TextField select fullWidth label={props.label} {...field}>
 						{props.variables.map((variable, index) => (
