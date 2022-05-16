@@ -1,33 +1,37 @@
-import {Controller, useFormContext} from "react-hook-form";
-import {Box, MenuItem, TextField} from "@mui/material";
-import {Variable} from "../model/types";
+import { Controller, useFormContext } from 'react-hook-form';
+import { Box, MenuItem, TextField } from '@mui/material';
+import { Variable } from '../model/types';
 
 export interface VariableSelectProps {
-	fieldName: string;
-	label: string;
-	variables: Variable[];
+  fieldName: string;
+  label: string;
+  variables: Variable[];
 }
 
-export const VariableSelect = (props : VariableSelectProps) => {
-	const {control} = useFormContext();
+export function VariableSelect({
+  fieldName,
+  label,
+  variables,
+}: VariableSelectProps) {
+  const { control } = useFormContext();
 
-	return (
-		<Box>
-			<Controller
-				name={props.fieldName}
-				control={control}
-				defaultValue={0}
-				render={({field}) =>
-					<TextField select fullWidth label={props.label} {...field}>
-						{props.variables.map((variable, index) => (
-							<MenuItem key={index} value={index}>
-								{variable.name}
-							</MenuItem>
-						))}
-					</TextField>
-				}
-			/>
-		</Box>
-	);
-
+  // TODO: Use the variable name as value!!!
+  return (
+    <Box>
+      <Controller
+        name={fieldName}
+        control={control}
+        defaultValue={0}
+        render={({ field }) => (
+          <TextField select fullWidth label={label} {...field}>
+            {variables.map((variable, index) => (
+              <MenuItem key={index} value={index}>
+                {variable.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+      />
+    </Box>
+  );
 }
