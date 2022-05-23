@@ -15,17 +15,16 @@ export function VariableSelect({
 }: VariableSelectProps) {
   const { control } = useFormContext();
 
-  // TODO: Use the variable name as value!!!
   return (
     <Box>
       <Controller
         name={fieldName}
         control={control}
-        defaultValue={0}
+        defaultValue=""
         render={({ field }) => (
           <TextField select fullWidth label={label} {...field}>
             {variables.map((variable, index) => (
-              <MenuItem key={index} value={index}>
+              <MenuItem key={index} value={variable.name}>
                 {variable.name}
               </MenuItem>
             ))}

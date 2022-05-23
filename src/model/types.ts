@@ -44,6 +44,8 @@ export type InvokeTaskParams = {
   inputType?: number;
   raml?: string;
   resource?: string;
+  userParamId?: string;
+  userParamType?: number;
   inputVariable?: string;
   targetVariable?: string;
 };
@@ -53,7 +55,6 @@ export type AssignTaskParams = {
   targetVariable?: string;
 };
 
-// TODO: Text must be optional!
 export interface Element {
   id: string;
   x: number;
@@ -61,7 +62,7 @@ export interface Element {
   width: number;
   height: number;
   type: ElementType;
-  text: string;
+  text?: string;
   connectors: string[];
 }
 

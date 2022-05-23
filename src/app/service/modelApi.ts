@@ -25,7 +25,7 @@ const modelApi = restflowAPI.injectEndpoints({
     }),
     updateModel: build.mutation<Model, Partial<Model>>({
       query: (body) => ({
-        url: `/model/${body.id}`,
+        url: `/model`,
         method: 'PATCH',
         body,
       }),

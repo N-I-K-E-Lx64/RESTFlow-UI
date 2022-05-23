@@ -1,10 +1,11 @@
 import { Divider, Stack } from '@mui/material';
 import { ChangeEvent, useEffect, useState } from 'react';
-import { Task, TaskType } from '../../model/types';
-import { FormInput } from '../../ui/FormInput';
-import { FormSelect } from '../../ui/FormSelect';
-import { InvokeForm } from './forms/InvokeForm';
-import AssignForm from './forms/AssignForm';
+import { Task, TaskType } from '../../../model/types';
+import { FormInput } from '../../../ui/FormInput';
+import { FormSelect } from '../../../ui/FormSelect';
+import { InvokeForm } from './InvokeForm';
+import AssignForm from './AssignForm';
+import { validationRules } from '../../../util/ValidationRules';
 
 interface NestedFormProps {
   task: Task;
@@ -30,7 +31,11 @@ export default function FormContainer({ task }: NestedFormProps) {
   return (
     <Stack spacing={2}>
       <FormInput fieldName="id" label="Task Id" disabled />
-      <FormInput fieldName="title" label="Task Name" />
+      <FormInput
+        fieldName="title"
+        label="Task Name"
+        rules={validationRules[0]}
+      />
       <FormInput
         fieldName="description"
         label="Task Description"

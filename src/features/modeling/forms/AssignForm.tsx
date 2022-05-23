@@ -10,7 +10,8 @@ export default function AssignForm() {
 
   return (
     <Stack spacing={2}>
-      <FormInput fieldName="assignParams.value" label="Value" />
+      <FormInput fieldName={'assignParams.paramId'} label={'Parameter Id'} />
+      <FormInput fieldName={'assignParams.value'} label={'Parameter Value'} />
       <VariableSelect
         fieldName="assignParams.targetVariable"
         label="Target Variable"

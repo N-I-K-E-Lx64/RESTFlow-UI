@@ -5,7 +5,7 @@ import { selectModel, updateTask } from './modelSlice';
 import { Task, TaskType } from '../../model/types';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectSelection } from './selectionSlice';
-import FormContainer from './FormContainer';
+import FormContainer from './forms/FormContainer';
 import ModelForm from './forms/ModelForm';
 
 export default function DetailModeling() {
@@ -19,9 +19,8 @@ export default function DetailModeling() {
   // Update the task model, when the user changes the selection
   useEffect(() => {
     const task = model.tasks.find((modelTask) => modelTask.id === selectionId);
-    console.log(task);
     typeof task !== 'undefined' ? setTaskModel(task) : setTaskModel(null);
-  }, [selectionId, model]);
+  }, [selectionId, model.tasks]);
 
   // Resets all form fields when the task model changed
   useEffect(() => {

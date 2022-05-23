@@ -9,10 +9,11 @@ export function VariablesFieldArray() {
     name: 'variables',
   });
 
-  // TODO : All Variable Types!
   const variableTypes = [
     { value: 0, label: 'String' },
-    { value: 1, label: 'Json' },
+    { value: 1, label: 'Double' },
+    { value: 2, label: 'Integer' },
+    { value: 3, label: 'Json' },
   ];
 
   return (
