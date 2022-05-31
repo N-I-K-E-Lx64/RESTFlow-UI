@@ -3,7 +3,7 @@ import { FormInput } from '../../../ui/FormInput';
 import { VariableSelect } from '../../../ui/VariableSelect';
 import { Variable } from '../../../model/types';
 import { useAppSelector } from '../../../app/hooks';
-import { selectVariables } from '../modelSlice';
+import { selectVariables } from '../slices/modelSlice';
 
 export default function AssignForm() {
   const variables: Variable[] = useAppSelector(selectVariables);

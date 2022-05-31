@@ -3,8 +3,8 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { Add } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { selectModel, setActiveModel } from './modelSlice';
+import { useAppDispatch } from '../../app/hooks';
+import { setActiveModel } from './slices/modelSlice';
 import {
   useAddModelMutation,
   useGetModelsQuery,
@@ -16,7 +16,7 @@ export default function ModelTabs() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [currentModel, setCurrentModel] = useState<number | boolean>(false);
-  const selectedModel = useAppSelector(selectModel);
+  const [selectedModel, setSelectedModel] = useState<Model>();
 
   const { data: models, error, isLoading } = useGetModelsQuery();
   const [addModel] = useAddModelMutation();
@@ -34,7 +34,10 @@ export default function ModelTabs() {
     if (typeof selectedModel !== 'undefined') {
       dispatch(setActiveModel(selectedModel));
 
+      // Set the tab index
       setCurrentModel(selectedIndex);
+      // Set the model
+      setSelectedModel(selectedModel);
       navigate(selectedModel.id);
     }
   };
@@ -63,7 +66,7 @@ export default function ModelTabs() {
   // When a new model is created set the tab-value accordingly
   useEffect(() => {
     const index = models?.findIndex(
-      (model: Model) => model.name === selectedModel.name
+      (model: Model) => model.name === selectedModel?.name
     );
     if (index !== -1 && typeof index !== 'undefined') {
       setCurrentModel(index);

@@ -11,9 +11,16 @@ const modelApi = restflowAPI.injectEndpoints({
         result
           ? [
               ...result.map(({ id }) => ({ type: 'Model' as const, id })),
-              'Model',
+              { type: 'Model', id: 'LIST' },
             ]
-          : ['Model'],
+          : [{ type: 'Model', id: 'LIST' }],
+    }),
+    getModelById: build.query<Model, string>({
+      query: (id) => ({
+        url: `/model/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, id) => [{ type: 'Model', id }],
     }),
     addModel: build.mutation<Model, Partial<Model>>({
       query: (body) => ({
@@ -21,7 +28,7 @@ const modelApi = restflowAPI.injectEndpoints({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['Model'],
+      invalidatesTags: [{ type: 'Model', id: 'LIST' }],
     }),
     updateModel: build.mutation<Model, Partial<Model>>({
       query: (body) => ({
@@ -29,7 +36,7 @@ const modelApi = restflowAPI.injectEndpoints({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: ['Model'],
+      invalidatesTags: (result, error, { id }) => [{ type: 'Model', id }],
     }),
     deleteModel: build.mutation<{ success: boolean }, string>({
       query: (id) => ({
@@ -44,6 +51,7 @@ const modelApi = restflowAPI.injectEndpoints({
 
 export const {
   useGetModelsQuery,
+  useGetModelByIdQuery,
   useAddModelMutation,
   useUpdateModelMutation,
   useDeleteModelMutation,

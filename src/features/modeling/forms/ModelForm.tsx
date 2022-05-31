@@ -1,7 +1,7 @@
 import { Box, Button, Divider, Stack } from '@mui/material';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useEffect } from 'react';
-import { selectModel, updateGeneralModelData } from '../modelSlice';
+import { selectModel, updateGeneralModelData } from '../slices/modelSlice';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { GeneralModelData } from '../../../model/types';
 import { FormInput } from '../../../ui/FormInput';

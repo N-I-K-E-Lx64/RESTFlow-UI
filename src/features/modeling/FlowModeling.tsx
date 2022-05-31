@@ -42,7 +42,7 @@ import {
   useDeleteModelMutation,
   useUpdateModelMutation,
 } from '../../app/service/modelApi';
-import { setSelection } from './selectionSlice';
+import { setSelection } from './slices/selectionSlice';
 import { QuickActionMenu, QuickActionMenuContext } from './QuickActionMenu';
 import {
   Connector,
@@ -58,16 +58,19 @@ import {
   assignConnector,
   removeConnector,
   removeElement,
+  selectConnectors,
+  selectElements,
   selectModel,
   updateConnector,
   updateElementPosition,
-} from './modelSlice';
+} from './slices/modelSlice';
 import {
-  Point,
-  eventConnectorPoints,
-  rectConnectorPoints,
   connectorContextMenuPosition,
+  eventConnectorPoints,
+  Point,
+  rectConnectorPoints,
 } from '../../util/ConnectorPoints';
+import { FormDialog } from '../../ui/FormDialog';
 
 interface CanvasSize {
   width: number;
@@ -106,23 +109,22 @@ export default function FlowModeling() {
     useState<ContextMenuParams>(INITIAL_CONTEXT_MENU);
 
   const stageRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<{ handleDialogOpen: () => void }>();
 
   const [updateModel] = useUpdateModelMutation();
   const [deleteModel] = useDeleteModelMutation();
 
   const model: Model = useAppSelector(selectModel);
-  const startElement = model.elements.filter(
+  const connectors = useAppSelector(selectConnectors);
+  const elements = useAppSelector(selectElements);
+  const startElement = elements.filter(
     (element) => element.type === ElementType.START_EVENT
   );
-  const endElement = model.elements.filter(
+  const endElement = elements.filter(
     (element) => element.type === ElementType.END_EVENT
   );
-  const elements = model.elements.filter(
-    (element) =>
-      element.type !== ElementType.START_EVENT &&
-      element.type !== ElementType.END_EVENT
-  );
-  const { connectors } = model;
+
+  // console.log(model, connectors, elements);
 
   /* let snappingGrid : number[][] = [];
 
@@ -142,31 +144,40 @@ export default function FlowModeling() {
   const calcConnectorPoints = (from: Element, to: Element): number[] => {
     if (from.type === ElementType.TASK && to.type === ElementType.TASK) {
       return rectConnectorPoints(from, to);
-    }
-    if (from.type === ElementType.START_EVENT && to.type === ElementType.TASK) {
+    } else if (
+      from.type === ElementType.START_EVENT &&
+      to.type === ElementType.TASK
+    ) {
       return eventConnectorPoints(from, to, true);
-    }
-    if (from.type === ElementType.TASK && to.type === ElementType.END_EVENT) {
+    } else if (
+      from.type === ElementType.TASK &&
+      to.type === ElementType.END_EVENT
+    ) {
       return eventConnectorPoints(to, from, false);
     }
-    // TODO : Fehlermeldung!
     return [];
   };
 
   /**
    * Searches for the specified element and either returns it or if it cannot be found return null
-   * @param elementId The id of the element
    */
   const getElement = useCallback(
     (elementId: string): Element | null => {
-      const mergedElements: Element[] = elements.concat(
-        startElement,
-        endElement
-      );
-      const element = mergedElements.find((elem) => elem.id === elementId);
+      const element = elements.find((element) => element.id === elementId);
       return typeof element !== 'undefined' ? element : null;
     },
-    [elements, endElement, startElement]
+    [elements]
+  );
+
+  /**
+   * Searches for the specified connector and either returns it or if it cannot be found return null
+   */
+  const getConnector = useCallback(
+    (connectorId: string): Connector | null => {
+      const connector = connectors.find((conn) => conn.id === connectorId);
+      return typeof connector !== 'undefined' ? connector : null;
+    },
+    [connectors]
   );
 
   /**
@@ -180,28 +191,41 @@ export default function FlowModeling() {
       // Generate a "global" id for this task
       const id = uuidv4();
 
-      // Create a new element on the click position based on the symbol type
-      dispatch(
-        addElement({
-          id,
-          x: Math.round(pointerPosition.x / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE,
-          y: Math.round(pointerPosition.y / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE,
-          width: 100,
-          height: 50,
-          type: addMode,
-          text: 'Task',
-          connectors: [],
-        })
-      );
+      // Compute the "snapped" click position
+      const position: Point = {
+        x: Math.round(pointerPosition.x / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE,
+        y: Math.round(pointerPosition.y / SNAP_BLOCK_SIZE) * SNAP_BLOCK_SIZE,
+      };
 
+      // Create a new element on the click position based on the symbol type
       switch (addMode) {
-        case ElementType.START_EVENT: {
-          break;
-        }
+        case ElementType.START_EVENT:
         case ElementType.END_EVENT: {
+          dispatch(
+            addElement({
+              id,
+              x: position.x,
+              y: position.y,
+              width: 50,
+              height: 50,
+              type: addMode,
+              connectors: [],
+            })
+          );
           break;
         }
         case ElementType.TASK: {
+          dispatch(
+            addElement({
+              id,
+              x: position.x,
+              y: position.y,
+              width: 100,
+              height: 50,
+              type: ElementType.TASK,
+              connectors: [],
+            })
+          );
           dispatch(
             addTask({
               id,
@@ -239,14 +263,28 @@ export default function FlowModeling() {
     if (element !== null) {
       // Store the selected symbol if connectMode is activated
       setSelectedElement(element);
+      console.log('Selection Symbol Click!');
       dispatch(setSelection(elementId));
 
-      setContextMenu({
-        activated: true,
-        top: element.y,
-        left: element.x + element.width + 8,
-        context: QuickActionMenuContext.Element,
-      });
+      if (element.type === ElementType.TASK) {
+        setContextMenu({
+          activated: true,
+          top: element.y + element.height / 2,
+          left: element.x + element.width + 16,
+          context: QuickActionMenuContext.Element,
+        });
+      } else if (
+        element.type === ElementType.START_EVENT ||
+        element.type === ElementType.END_EVENT
+      ) {
+        console.log(element);
+        setContextMenu({
+          activated: true,
+          top: element.y,
+          left: element.x + element.width / 2 + 8,
+          context: QuickActionMenuContext.Element,
+        });
+      }
 
       if (selectedElement !== null && connectMode) {
         // Compute the Connector Points and store the connector, so it can be drawn
@@ -321,11 +359,24 @@ export default function FlowModeling() {
       // Generate a "global" id for this task
       const id = uuidv4();
 
+      const newTaskPosition: Point = {
+        x: selectedElement.x + selectedElement.width + 32,
+        y: selectedElement.y,
+      };
+
+      // Since Konva uses different reference points on Circles and Rects, the y position needs to be adjusted
+      if (
+        selectedElement.type === ElementType.START_EVENT ||
+        selectedElement.type === ElementType.END_EVENT
+      ) {
+        newTaskPosition.y = selectedElement.y - selectedElement.height / 2;
+      }
+
       // Create a new element on the right of the existing element
       const newElement: Element = {
         id,
-        x: selectedElement.x + selectedElement.width + 32,
-        y: selectedElement.y,
+        x: newTaskPosition.x,
+        y: newTaskPosition.y,
         width: 100,
         height: 50,
         type: ElementType.TASK,
@@ -369,9 +420,14 @@ export default function FlowModeling() {
       contextMenu.context === QuickActionMenuContext.Element &&
       selectedElement !== null
     ) {
+      // Removes the associated connectors!
+      selectedElement.connectors.forEach((connectorId) =>
+        dispatch(removeConnector(getConnector(connectorId)!))
+      );
+      // Remove the element!
+      dispatch(removeElement(selectedElement));
       // Removes the selection
       setSelectedElement(null);
-      dispatch(removeElement(selectedElement));
     } else if (
       contextMenu.context === QuickActionMenuContext.Connector &&
       selectedConnector !== null
@@ -380,6 +436,8 @@ export default function FlowModeling() {
       setSelectedConnector(null);
       dispatch(removeConnector(selectedConnector));
     }
+
+    // Reset the context menu
     setContextMenu(INITIAL_CONTEXT_MENU);
   };
 
@@ -388,29 +446,25 @@ export default function FlowModeling() {
     // Updates the connectors accordingly
     const draggedElement = getElement(draggedElementId);
     if (draggedElement !== null) {
-      draggedElement.connectors.forEach((connId: string) => {
-        const connector = connectors.find(
-          (conn: Connector) => conn.id === connId
-        );
+      draggedElement.connectors.forEach((connectorId: string) => {
+        const connector = getConnector(connectorId);
 
-        let source: Element | null = null;
-        let target: Element | null = null;
+        let source: Element | null;
+        let target: Element | null;
 
         // Determines the source and target of the connector
-        if (typeof connector !== 'undefined') {
-          if (connector.source === draggedElementId) {
-            source = draggedElement;
-            target = getElement(connector.target);
-          } else {
-            source = getElement(connector.source);
-            target = draggedElement;
-          }
+        if (connector!.source === draggedElementId) {
+          source = draggedElement;
+          target = getElement(connector!.target);
+        } else {
+          source = getElement(connector!.source);
+          target = draggedElement;
         }
 
         // Computes the new line points and store them in the state
         if (source !== null && target !== null) {
           const newPoints = calcConnectorPoints(source, target);
-          dispatch(updateConnector({ id: connId, points: newPoints }));
+          dispatch(updateConnector({ id: connectorId, points: newPoints }));
         }
       });
       // Reset the dragged Element
@@ -419,22 +473,16 @@ export default function FlowModeling() {
       // Updates the selector position
       setSelectedElement(draggedElement);
     }
-  }, [draggedElementId, connectors, dispatch, getElement]);
+  }, [draggedElementId, dispatch, getElement]);
 
   // Highlight the selected symbol
   useEffect(() => {
     if (selectedElement !== null) {
-      const {
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        x,
-        y,
-        width,
-        height,
-      } = selectedElement;
+      const { x, y, width, height } = selectedElement;
 
-      const r = height / 2 + 8;
-      const w = width + 4;
-      const h = height + 4;
+      const r = height / 2;
+      const w = width + 8;
+      const h = height + 8;
 
       switch (selectedElement.type) {
         case ElementType.START_EVENT:
@@ -455,16 +503,16 @@ export default function FlowModeling() {
 
         case ElementType.TASK:
           setElementSelection([
-            x - 4,
-            y - 4,
+            x - 8,
+            y - 8,
             x + w,
-            y - 4,
+            y - 8,
             x + w,
             y + h,
-            x - 4,
+            x - 8,
             y + h,
-            x - 4,
-            y - 4,
+            x - 8,
+            y - 8,
           ]);
           break;
 
@@ -503,200 +551,229 @@ export default function FlowModeling() {
     deleteModel(model.id).then((result) => console.log(result));
   };
 
+  /**
+   * Sends a request (with the instance id as a query parameter) to the server to execute the specified instance.
+   * @param instanceId Result of the dialog form that represents the instance id
+   */
+  const executeWorkflow = (instanceId: string) => {
+    fetch(`http://localhost:8080/execute/${model.id}/${instanceId}`, {
+      mode: 'no-cors',
+    })
+      .then((response) => response.text)
+      .then((message) => console.log(message));
+  };
+
   // Object containing the actions for the SpeedDial
   const actions = [
     { icon: <Save />, name: 'Save', action: handleUpdateModel },
     { icon: <Delete />, name: 'Delete', action: handleDeleteModel },
-    { icon: <PlayArrow />, name: 'Play' },
+    {
+      icon: <PlayArrow />,
+      name: 'Play',
+      action: () => dialogRef.current?.handleDialogOpen(),
+    },
   ];
 
   return (
-    <Box sx={{ border: 'medium dashed grey' }} ref={stageRef}>
-      <Stage
-        width={canvasSize.width}
-        height={canvasSize.height}
-        onMouseDown={handleStageClick}
-      >
-        <Layer imageSmoothingEnabled>
-          <Html>
-            <Paper
-              sx={{
-                p: 1,
-                position: 'absolute',
-                top: '8px',
-                left: '8px',
+    <Box>
+      <Box sx={{ border: 'medium dashed grey' }} ref={stageRef}>
+        <Stage
+          width={canvasSize.width}
+          height={canvasSize.height}
+          onMouseDown={handleStageClick}
+        >
+          <Layer imageSmoothingEnabled>
+            <Html>
+              <Paper
+                sx={{
+                  p: 1,
+                  position: 'absolute',
+                  top: '8px',
+                  left: '8px',
+                }}
+              >
+                <Stack spacing={1}>
+                  <IconButton
+                    aria-label="AddStartEvent"
+                    onClick={() => setAddMode(ElementType.START_EVENT)}
+                  >
+                    <RadioButtonUnchecked />
+                  </IconButton>
+                  <IconButton
+                    aria-label="AddEndEvent"
+                    onClick={() => setAddMode(ElementType.END_EVENT)}
+                  >
+                    <RadioButtonChecked />
+                  </IconButton>
+                  <IconButton
+                    aria-label="AddTask"
+                    onClick={() => setAddMode(ElementType.TASK)}
+                  >
+                    <Task />
+                  </IconButton>
+
+                  <Divider />
+
+                  <IconButton
+                    aria-label="ConnectTasks"
+                    onClick={() => setConnectMode(true)}
+                  >
+                    <CallMade />
+                  </IconButton>
+                </Stack>
+              </Paper>
+            </Html>
+
+            <Html
+              divProps={{
+                style: { position: 'absolute', inset: 'auto 8px 8px auto' },
               }}
             >
-              <Stack spacing={1}>
-                <IconButton
-                  aria-label="AddStartEvent"
-                  onClick={() => setAddMode(ElementType.START_EVENT)}
-                >
-                  <RadioButtonUnchecked />
-                </IconButton>
-                <IconButton
-                  aria-label="AddEndEvent"
-                  onClick={() => setAddMode(ElementType.END_EVENT)}
-                >
-                  <RadioButtonChecked />
-                </IconButton>
-                <IconButton
-                  aria-label="AddTask"
-                  onClick={() => setAddMode(ElementType.TASK)}
-                >
-                  <Task />
-                </IconButton>
+              <SpeedDial
+                ariaLabel="SpeedDial"
+                icon={<SpeedDialIcon />}
+                direction="left"
+              >
+                {actions.map((action) => (
+                  <SpeedDialAction
+                    key={action.name}
+                    icon={action.icon}
+                    tooltipTitle={action.name}
+                    onClick={action.action}
+                  />
+                ))}
+              </SpeedDial>
+            </Html>
 
-                <Divider />
-
-                <IconButton
-                  aria-label="ConnectTasks"
-                  onClick={() => setConnectMode(true)}
-                >
-                  <CallMade />
-                </IconButton>
-              </Stack>
-            </Paper>
-          </Html>
-
-          <Html
-            divProps={{
-              style: { position: 'absolute', inset: 'auto 8px 8px auto' },
-            }}
-          >
-            <SpeedDial
-              ariaLabel="SpeedDial"
-              icon={<SpeedDialIcon />}
-              direction="left"
-            >
-              {actions.map((action) => (
-                <SpeedDialAction
-                  key={action.name}
-                  icon={action.icon}
-                  tooltipTitle={action.name}
-                  onClick={action.action}
-                />
-              ))}
-            </SpeedDial>
-          </Html>
-
-          {startElement.map((element) => (
-            <Circle
-              key={element.id}
-              id={element.id}
-              x={element.x}
-              y={element.y}
-              radius={element.height / 3}
-              fill="white"
-              stroke="black"
-              strokeWidth={2}
-              draggable
-              onDragEnd={handleDragEnd}
-              onClick={handleSymbolClick}
-            />
-          ))}
-
-          {endElement.map((element) => (
-            <Circle
-              key={element.id}
-              id={element.id}
-              x={element.x}
-              y={element.y}
-              radius={element.height / 3}
-              fill="white"
-              stroke="black"
-              strokeWidth={5}
-              draggable
-              onDragEnd={handleDragEnd}
-              onClick={handleSymbolClick}
-            />
-          ))}
-
-          {elements.map((element) => (
-            <Group
-              key={element.id}
-              id={element.id}
-              x={element.x}
-              y={element.y}
-              draggable
-              onDragEnd={handleDragEnd}
-            >
-              <Rect
-                width={element.width}
-                height={element.height}
+            {startElement.map((element) => (
+              <Circle
+                key={element.id}
+                id={element.id}
+                x={element.x}
+                y={element.y}
+                radius={element.height / 3}
                 fill="white"
                 stroke="black"
                 strokeWidth={2}
-                cornerRadius={10}
-              />
-              <Text
-                text={element.text}
-                id={element.id}
-                align="center"
-                verticalAlign="middle"
-                fontSize={14}
-                fill="black"
-                width={element.width}
-                height={element.height}
+                draggable
+                onDragEnd={handleDragEnd}
                 onClick={handleSymbolClick}
               />
-            </Group>
-          ))}
+            ))}
 
-          {connectors.map((conn) => (
-            <Arrow
-              key={conn.id}
-              id={conn.id}
-              points={conn.points}
-              fill="black"
-              stroke="black"
-              onClick={handleConnectorClick}
-              hitStrokeWidth={24}
-            />
-          ))}
+            {endElement.map((element) => (
+              <Circle
+                key={element.id}
+                id={element.id}
+                x={element.x}
+                y={element.y}
+                radius={element.height / 3}
+                fill="white"
+                stroke="black"
+                strokeWidth={5}
+                draggable
+                onDragEnd={handleDragEnd}
+                onClick={handleSymbolClick}
+              />
+            ))}
 
-          {elementSelection.length >= 1 && (
-            <Line
-              key="Selector"
-              points={elementSelection}
-              stroke="#b3e5fc"
-              strokeWidth={2}
-              dash={[5, 5]}
-            />
-          )}
+            {elements.map(
+              (element) =>
+                element.type === ElementType.TASK && (
+                  <Group
+                    key={element.id}
+                    id={element.id}
+                    x={element.x}
+                    y={element.y}
+                    draggable
+                    onDragEnd={handleDragEnd}
+                  >
+                    <Rect
+                      width={element.width}
+                      height={element.height}
+                      fill="white"
+                      stroke="black"
+                      strokeWidth={2}
+                      cornerRadius={10}
+                    />
+                    <Text
+                      text={element.text}
+                      id={element.id}
+                      align="center"
+                      verticalAlign="middle"
+                      fontSize={14}
+                      fill="black"
+                      width={element.width}
+                      height={element.height}
+                      onClick={handleSymbolClick}
+                    />
+                  </Group>
+                )
+            )}
 
-          {selectedConnector !== null &&
-            selectedConnector!.points.length >= 1 && (
+            {connectors.map((conn) => (
               <Arrow
-                key="ConnectorSelector"
-                points={selectedConnector!.points}
-                fill="#29b6f6"
-                stroke="#29b6f6"
+                key={conn.id}
+                id={conn.id}
+                points={conn.points}
+                fill="black"
+                stroke="black"
+                onClick={handleConnectorClick}
+                hitStrokeWidth={24}
+              />
+            ))}
+
+            {elementSelection.length >= 1 && (
+              <Line
+                key="Selector"
+                points={elementSelection}
+                stroke="#b3e5fc"
+                strokeWidth={2}
+                dash={[5, 5]}
               />
             )}
 
-          {contextMenu.activated && (
-            <Html
-              divProps={{
-                style: {
-                  position: 'absolute',
-                  inset: `${contextMenu.top}px auto auto ${contextMenu.left}px`,
-                },
-              }}
-            >
-              <QuickActionMenu
-                onDelete={deleteElement}
-                onTaskCreate={createTask}
-                context={contextMenu.context}
-              />
-            </Html>
-          )}
+            {selectedConnector !== null &&
+              selectedConnector!.points.length >= 1 && (
+                <Arrow
+                  key="ConnectorSelector"
+                  points={selectedConnector!.points}
+                  fill="#29b6f6"
+                  stroke="#29b6f6"
+                />
+              )}
 
-          {/* {snappingGrid.map((snapLine, index) => (
+            {contextMenu.activated && (
+              <Html
+                divProps={{
+                  style: {
+                    position: 'absolute',
+                    inset: `${contextMenu.top}px auto auto ${contextMenu.left}px`,
+                  },
+                }}
+              >
+                <QuickActionMenu
+                  onDelete={deleteElement}
+                  onTaskCreate={createTask}
+                  context={contextMenu.context}
+                />
+              </Html>
+            )}
+
+            {/* {snappingGrid.map((snapLine, index) => (
 						<Line key={index} points={snapLine} stroke="#ddd" strokeWidth={1} />
 					))} */}
-        </Layer>
-      </Stage>
+          </Layer>
+        </Stage>
+      </Box>
+
+      <FormDialog
+        ref={dialogRef}
+        dialogTitle="Workflow Execution"
+        dialogText="Enter a name for the workflow-instance to be created"
+        buttonText="Execute"
+        dialogCallback={executeWorkflow}
+      />
     </Box>
   );
 }
