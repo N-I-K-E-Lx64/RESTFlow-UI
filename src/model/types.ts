@@ -78,12 +78,6 @@ export interface Variable {
   type: VariableType;
 }
 
-/* interface FlowElement {
-  id: string;
-  incoming: string;
-  outgoing: string;
-} */
-
 export interface PositionUpdate {
   id: string;
   x: number;
@@ -105,4 +99,14 @@ export interface GeneralModelData {
   name: string;
   description: string;
   variables: Variable[];
+}
+
+export interface RAMLFile {
+  fileName: string;
+  resources: string[];
+}
+
+export interface FileUpload {
+  modelId: string;
+  files: FormData;
 }

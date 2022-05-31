@@ -30,6 +30,7 @@
     "lodash.throttle": "^4.1.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "react-dropzone": "^14.2.1",
     "react-hook-form": "^7.31.1",
     "react-konva": "^18.1.0",
     "react-konva-utils": "^0.3.0",
