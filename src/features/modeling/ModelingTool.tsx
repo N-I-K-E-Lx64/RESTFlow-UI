@@ -1,4 +1,4 @@
-import { Grid } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
 import DetailModeling from './DetailModeling';
 import FlowModeling from './FlowModeling';
 import { useParams } from 'react-router-dom';
@@ -14,15 +14,30 @@ export default function ModelingTool() {
 
   const { modelId } = useParams<{ modelId: any }>();
 
-  const { data: model } = useGetModelByIdQuery(modelId);
+  const { data: model, isLoading } = useGetModelByIdQuery(modelId);
   const { data: apiResources } = useGetApiResourcesQuery(modelId);
 
   useEffect(() => {
-    if (typeof model !== 'undefined' && typeof apiResources !== 'undefined') {
-      dispatch(setActiveModel(model));
-      dispatch(apisSet(apiResources));
-    }
+    if (model) dispatch(setActiveModel(model));
+    if (apiResources) dispatch(apisSet(apiResources));
   }, [model, apiResources, dispatch]);
+
+  if (isLoading) {
+    return (
+      <Typography variant="h2" gutterBottom>
+        Loading...
+      </Typography>
+    );
+  }
+
+  if (!model) {
+    return (
+      <Typography variant="h2" gutterBottom>
+        Model {modelId} could not be found! Try reloading or selecting another
+        model...
+      </Typography>
+    );
+  }
 
   return (
     <Grid container spacing={1}>

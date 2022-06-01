@@ -1,11 +1,9 @@
 import { restflowAPI } from './restflowAPI';
 import { Model } from '../../model/types';
 
-type ModelsResponse = Model[];
-
 const modelApi = restflowAPI.injectEndpoints({
   endpoints: (build) => ({
-    getModels: build.query<ModelsResponse, void>({
+    getModels: build.query<Model[], void>({
       query: () => '/models',
       providesTags: (result) =>
         result

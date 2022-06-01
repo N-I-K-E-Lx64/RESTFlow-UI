@@ -3,8 +3,6 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { Add } from '@mui/icons-material';
 import { v4 as uuidv4 } from 'uuid';
-import { useAppDispatch } from '../../app/hooks';
-import { setActiveModel } from './slices/modelSlice';
 import {
   useAddModelMutation,
   useGetModelsQuery,
@@ -13,10 +11,9 @@ import { Model } from '../../model/types';
 import { FormDialog } from '../../ui/FormDialog';
 
 export default function ModelTabs() {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [currentModel, setCurrentModel] = useState<number | boolean>(false);
-  const [selectedModel, setSelectedModel] = useState<Model>();
+  const [tabIndex, setTabIndex] = useState<number | boolean>(false);
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
 
   const { data: models, error, isLoading } = useGetModelsQuery();
   const [addModel] = useAddModelMutation();
@@ -32,10 +29,8 @@ export default function ModelTabs() {
   const handleChange = (event: SyntheticEvent, selectedIndex: number) => {
     const selectedModel = models?.at(selectedIndex);
     if (typeof selectedModel !== 'undefined') {
-      dispatch(setActiveModel(selectedModel));
-
       // Set the tab index
-      setCurrentModel(selectedIndex);
+      setTabIndex(selectedIndex);
       // Set the model
       setSelectedModel(selectedModel);
       navigate(selectedModel.id);
@@ -48,7 +43,7 @@ export default function ModelTabs() {
    */
   const createModel = (modelName: string) => {
     const modelId = uuidv4();
-    const dummyModel: Model = {
+    const newModel: Model = {
       id: modelId,
       name: modelName,
       description: '',
@@ -58,18 +53,25 @@ export default function ModelTabs() {
       tasks: [],
     };
 
-    dispatch(setActiveModel(dummyModel));
-    // Navigate to the created model
-    addModel(dummyModel).then(() => navigate(`${modelId}`));
+    addModel(newModel).then(() => {
+      setSelectedModel(newModel);
+      // Navigate to the created model
+      navigate(`${modelId}`);
+    });
   };
 
-  // When a new model is created set the tab-value accordingly
+  // If the models array is empty reset the two state values to their initial values
   useEffect(() => {
-    const index = models?.findIndex(
-      (model: Model) => model.name === selectedModel?.name
-    );
-    if (index !== -1 && typeof index !== 'undefined') {
-      setCurrentModel(index);
+    if (models?.length === 0) {
+      setTabIndex(false);
+      setSelectedModel(null);
+    } else {
+      const index = models?.findIndex(
+        (model) => model.name === selectedModel?.name
+      );
+      if (typeof index !== 'undefined' && index !== -1) {
+        setTabIndex(index);
+      }
     }
   }, [models, selectedModel]);
 
@@ -91,7 +93,7 @@ export default function ModelTabs() {
 
   return (
     <Box sx={{ paddingBottom: 8 }}>
-      <Tabs value={currentModel} onChange={handleChange} selectionFollowsFocus>
+      <Tabs value={tabIndex} onChange={handleChange} selectionFollowsFocus>
         {models?.map((prop: Model, index: number) => (
           <Tab label={prop.name} value={index} key={index} />
         ))}

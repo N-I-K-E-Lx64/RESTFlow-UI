@@ -71,6 +71,7 @@ import {
   rectConnectorPoints,
 } from '../../util/ConnectorPoints';
 import { FormDialog } from '../../ui/FormDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface CanvasSize {
   width: number;
@@ -94,7 +95,10 @@ const SNAP_BLOCK_SIZE: number = 25;
 
 export default function FlowModeling() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const { width, height } = useWindowSize();
+
   const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width, height });
   const [addMode, setAddMode] = useState<ElementType | null>(null);
   const [connectMode, setConnectMode] = useState<boolean>(false);
@@ -548,7 +552,7 @@ export default function FlowModeling() {
    * Deletes the model on the server
    */
   const handleDeleteModel = () => {
-    deleteModel(model.id).then((result) => console.log(result));
+    deleteModel(model.id).then(() => navigate('/modeling'));
   };
 
   /**
