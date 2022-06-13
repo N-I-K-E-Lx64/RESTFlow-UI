@@ -19,8 +19,11 @@ export default function ModelingTool() {
 
   useEffect(() => {
     if (model) dispatch(setActiveModel(model));
+  }, [model, dispatch]);
+
+  useEffect(() => {
     if (apiResources) dispatch(apisSet(apiResources));
-  }, [model, apiResources, dispatch]);
+  }, [apiResources, dispatch]);
 
   if (isLoading) {
     return (

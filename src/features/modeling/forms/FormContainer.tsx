@@ -7,9 +7,9 @@ import { InvokeForm } from './InvokeForm';
 import AssignForm from './AssignForm';
 import { validationRules } from '../../../util/ValidationRules';
 
-interface NestedFormProps {
+export type NestedFormProps = {
   task: Task;
-}
+};
 
 export default function FormContainer({ task }: NestedFormProps) {
   const [taskType, setTaskType] = useState<number>(0);
@@ -51,7 +51,7 @@ export default function FormContainer({ task }: NestedFormProps) {
 
       <Divider variant="middle" />
 
-      {taskType === TaskType.INVOKE_TASK && <InvokeForm />}
+      {taskType === TaskType.INVOKE_TASK && <InvokeForm task={task} />}
       {taskType === TaskType.ASSIGN_TASK && <AssignForm />}
     </Stack>
   );

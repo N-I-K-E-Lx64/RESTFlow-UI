@@ -70,7 +70,7 @@ export default function ClippedDrawer() {
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 1 }}>
         <Toolbar />
         <Outlet />
       </Box>

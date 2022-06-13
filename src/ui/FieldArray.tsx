@@ -2,11 +2,21 @@ import { useFieldArray, useFormContext, Controller } from 'react-hook-form';
 import { Box, IconButton, MenuItem, TextField } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 
-export function VariablesFieldArray() {
+export interface FieldArrayProps {
+  fieldArray: string;
+  textFieldName: string;
+  textFieldLabel: string;
+}
+
+export const FieldArray = ({
+  fieldArray,
+  textFieldName,
+  textFieldLabel,
+}: FieldArrayProps) => {
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'variables',
+    name: `${fieldArray}`,
   });
 
   const variableTypes = [
@@ -28,15 +38,16 @@ export function VariablesFieldArray() {
           }}
         >
           <Controller
-            name={`variables.${index}.name`}
+            name={`${fieldArray}.${index}.${textFieldName}`}
             control={control}
+            defaultValue=""
             render={({ field }) => (
-              <TextField variant="outlined" label="Variable Name" {...field} />
+              <TextField variant="outlined" label={textFieldLabel} {...field} />
             )}
           />
 
           <Controller
-            name={`variables.${index}.type`}
+            name={`${fieldArray}.${index}.type`}
             control={control}
             render={({ field }) => (
               <TextField select label="Type" {...field}>
@@ -49,10 +60,7 @@ export function VariablesFieldArray() {
             )}
           />
 
-          <IconButton
-            aria-label="delete variable"
-            onClick={() => remove(index)}
-          >
+          <IconButton aria-label="delete entry" onClick={() => remove(index)}>
             <Delete />
           </IconButton>
         </Box>
@@ -60,11 +68,11 @@ export function VariablesFieldArray() {
 
       <IconButton
         color="primary"
-        aria-label="add variable"
-        onClick={() => append({ name: '', type: 0 })}
+        aria-label="add entry"
+        onClick={() => append({ [textFieldName]: '', type: 0 })}
       >
         <Add />
       </IconButton>
     </Box>
   );
-}
+};

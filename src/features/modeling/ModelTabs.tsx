@@ -47,7 +47,7 @@ export default function ModelTabs() {
       id: modelId,
       name: modelName,
       description: '',
-      variables: [{ name: 'Result', type: 1 }],
+      variables: [{ name: 'Result', type: 3 }],
       elements: [],
       connectors: [],
       tasks: [],

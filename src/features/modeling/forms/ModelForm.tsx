@@ -5,7 +5,7 @@ import { selectModel, updateGeneralModelData } from '../slices/modelSlice';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { GeneralModelData } from '../../../model/types';
 import { FormInput } from '../../../ui/FormInput';
-import { VariablesFieldArray } from '../VariablesFieldArray';
+import { FieldArray } from '../../../ui/FieldArray';
 import { validationRules } from '../../../util/ValidationRules';
 
 export default function ModelForm() {
@@ -61,7 +61,11 @@ export default function ModelForm() {
 
           <Divider variant="middle" />
 
-          <VariablesFieldArray />
+          <FieldArray
+            fieldArray="variables"
+            textFieldName="name"
+            textFieldLabel="Variable-Id"
+          />
 
           <Divider variant="middle" />
         </Stack>

@@ -2,7 +2,7 @@ import { Box, Button } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { selectModel, updateTask } from './slices/modelSlice';
-import { Task, TaskType } from '../../model/types';
+import { Task } from '../../model/types';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectSelection } from './slices/selectionSlice';
 import FormContainer from './forms/FormContainer';
@@ -38,21 +38,6 @@ export default function DetailModeling() {
     methods.trigger().then((validationStatus) => {
       if (validationStatus && taskModel !== null) {
         const task: Task = methods.getValues();
-
-        /* Delete unnecessary attributes (e.g. when the task type is switched to "ASSIGN_TASK" the invokeParams
-				attribute is no longer needed! */
-        if (
-          task.type === TaskType.INVOKE_TASK &&
-          typeof task.assignParams !== 'undefined'
-        ) {
-          delete task.assignParams;
-        }
-        if (
-          task.type === TaskType.ASSIGN_TASK &&
-          typeof task.invokeParams !== 'undefined'
-        ) {
-          delete task.invokeParams;
-        }
         console.log(task);
         dispatch(updateTask(task));
       }

@@ -267,7 +267,6 @@ export default function FlowModeling() {
     if (element !== null) {
       // Store the selected symbol if connectMode is activated
       setSelectedElement(element);
-      console.log('Selection Symbol Click!');
       dispatch(setSelection(elementId));
 
       if (element.type === ElementType.TASK) {
@@ -281,7 +280,6 @@ export default function FlowModeling() {
         element.type === ElementType.START_EVENT ||
         element.type === ElementType.END_EVENT
       ) {
-        console.log(element);
         setContextMenu({
           activated: true,
           top: element.y,
@@ -562,9 +560,8 @@ export default function FlowModeling() {
   const executeWorkflow = (instanceId: string) => {
     fetch(`http://localhost:8080/execute/${model.id}/${instanceId}`, {
       mode: 'no-cors',
-    })
-      .then((response) => response.text)
-      .then((message) => console.log(message));
+    }).then((response) => console.log(response));
+    //.then((message) => console.log(message));
   };
 
   // Object containing the actions for the SpeedDial

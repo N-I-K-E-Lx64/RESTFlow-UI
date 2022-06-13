@@ -31,18 +31,20 @@ export enum VariableType {
   JSON,
 }
 
+type TaskParams = InvokeTaskParams | AssignTaskParams;
+
 export interface Task {
   id: string;
   title: string;
   description: string;
   type: TaskType;
-  invokeParams?: InvokeTaskParams;
-  assignParams?: AssignTaskParams;
+  params?: TaskParams;
 }
 
 export type InvokeTaskParams = {
-  inputType?: number;
-  raml?: string;
+  type: TaskType.INVOKE_TASK;
+  inputType: number;
+  raml: string;
   resource?: string;
   userParamId?: string;
   userParamType?: number;
@@ -51,6 +53,7 @@ export type InvokeTaskParams = {
 };
 
 export type AssignTaskParams = {
+  type: TaskType.ASSIGN_TASK;
   value?: string;
   targetVariable?: string;
 };
