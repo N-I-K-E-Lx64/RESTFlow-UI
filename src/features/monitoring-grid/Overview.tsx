@@ -1,61 +1,89 @@
-import React, {useCallback, useMemo} from "react";
+import React, { useCallback, useMemo } from 'react';
 import {
-	DataGrid,
-	GridRenderCellParams,
-	GridRowModel,
-	GridActionsCellItem,
-	GridRowParams, GridRowId
-} from "@mui/x-data-grid";
-import {Box, Chip, Snackbar} from "@mui/material";
-import {RestartAlt, StopOutlined} from "@mui/icons-material";
-import {MonitoringInstance, useGetMessagesQuery} from "../../app/service/websocketApi";
+  DataGrid,
+  GridRenderCellParams,
+  GridRowModel,
+  GridActionsCellItem,
+  GridRowParams,
+  GridRowId,
+  GridSelectionModel,
+} from '@mui/x-data-grid';
+import { Box, Chip, Snackbar } from '@mui/material';
+import { RestartAlt, StopOutlined } from '@mui/icons-material';
+import {
+  MonitoringInstance,
+  useGetMessagesQuery,
+} from '../../app/service/websocketApi';
 
 enum WorkflowStatus {
-	INITIATED = "initiated",
-	ACTIVE = "active",
-	SUSPENDED = "suspended",
-	TERMINATED = "terminated",
-	COMPLETED = "completed"
+  INITIATED = 'initiated',
+  ACTIVE = 'active',
+  SUSPENDED = 'suspended',
+  TERMINATED = 'terminated',
+  COMPLETED = 'completed',
 }
 
 export function MonitoringGrid() {
-	const [open, setOpen] = React.useState(false);
-	const [message, setMessage] = React.useState("");
-	const {data, isLoading} = useGetMessagesQuery();
+  const [open, setOpen] = React.useState(false);
+  const [message, setMessage] = React.useState('');
+  const [selectionModel, setSelectionModel] =
+    React.useState<GridSelectionModel>([]);
 
-	const rows: GridRowModel[] = useMemo(() => {
-		console.log(data);
-		if (typeof data !== "undefined" && isLoading === false) {
-			return data.map((instance: MonitoringInstance) => Object.assign({ id: instance.wfName}, instance));
-		} else {
-			return [];
-		}
-	}, [data, isLoading]);
+  const { data, isLoading } = useGetMessagesQuery();
 
-	const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
-		if (reason === 'clickaway') return;
+  const rows: GridRowModel[] = useMemo(() => {
+    console.log(data);
+    if (typeof data !== 'undefined' && isLoading === false) {
+      return data.map((instance: MonitoringInstance) =>
+        Object.assign({ id: instance.wfName }, instance)
+      );
+    } else {
+      return [];
+    }
+  }, [data, isLoading]);
 
-		setOpen(false);
-	}
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === 'clickaway') return;
 
-	const restartWorkflow = useCallback((id: GridRowId) => () => {
-		sendCommand(id, "restart");
-	}, []);
+    setOpen(false);
+  };
 
-	const pauseWorkflow = useCallback((id: GridRowId) => () => {
-		sendCommand(id, "stop");
-	}, []);
+  const restartWorkflow = useCallback(
+    (id: GridRowId) => () => {
+      sendCommand(id, 'restart');
+    },
+    []
+  );
 
-	const sendCommand = (id: GridRowId, command: string) => {
-		fetch(`http://localhost:8080/workflow/${command}/${id}`)
-			.then(response => response.text())
-			.then((message: string) => {
-				setMessage(message);
-				setOpen(true);
-			})
-	}
+  const pauseWorkflow = useCallback(
+    (id: GridRowId) => () => {
+      sendCommand(id, 'stop');
+    },
+    []
+  );
 
-	/* const determineColor = (status: WorkflowStatus): ('primary' | 'warning' | 'error' | 'success' | 'default') => {
+  /*const deleteInstance = useCallback((id: GridRowId) => () => {
+    sendCommand(id, "delete");
+  }, []);*/
+
+  /**
+   * Send some messages to the server
+   * @param instanceId Id of the workflow instance
+   * @param command The command that the server should execute
+   */
+  const sendCommand = (instanceId: GridRowId, command: 'restart' | 'stop') => {
+    fetch(`http://localhost:8080/${command}/${instanceId}`)
+      .then((response) => response.text())
+      .then((message: string) => {
+        setMessage(message);
+        setOpen(true);
+      });
+  };
+
+  /* const determineColor = (status: WorkflowStatus): ('primary' | 'warning' | 'error' | 'success' | 'default') => {
 		console.log(status);
 		switch (status) {
 			case WorkflowStatus.ACTIVE: return 'primary';
@@ -67,42 +95,81 @@ export function MonitoringGrid() {
 		}
 	} */
 
-	const columns = useMemo(() => [
-			{field: 'wfName', headerName: 'Workflow Name', type: 'string', flex: 1},
-			{field: 'currentActivity', headerName: 'Current Activity', type: 'string', flex: 1},
-			{
-				field: 'wfStatus', headerName: 'Status', flex: 1, renderCell: (params: GridRenderCellParams) => (
-					<Chip
-						label={(params.value as WorkflowStatus)}
-						// color={determineColor(params.value as WorkflowStatus)}
-					/>
-				),
-			},
-			{field: 'startTime', headerName: 'Last Started', type: 'dateTime', flex: 1},
-			// {field: 'lastModified', type: 'dateTime', width: 180 },
-			{
-				field: 'actions',
-				type: 'actions',
-				minWidth: 120,
-				getActions: (params: GridRowParams) => [
-					<GridActionsCellItem
-						icon={ <RestartAlt/> }
-						label="Restart Workflow"
-						onClick={restartWorkflow(params.id)} />,
-					<GridActionsCellItem
-						icon={ <StopOutlined/> }
-						label="Pause Workflow"
-						onClick={pauseWorkflow(params.id)} />,
-				],
-			},
-		],
-		[restartWorkflow, pauseWorkflow],
-	);
+  const columns = useMemo(
+    () => [
+      { field: 'wfName', headerName: 'Workflow Name', type: 'string', flex: 1 },
+      {
+        field: 'currentActivity',
+        headerName: 'Current Activity',
+        type: 'string',
+        flex: 1,
+      },
+      {
+        field: 'wfStatus',
+        headerName: 'Status',
+        flex: 1,
+        renderCell: (params: GridRenderCellParams) => (
+          <Chip
+            label={params.value as WorkflowStatus}
+            // color={determineColor(params.value as WorkflowStatus)}
+          />
+        ),
+      },
+      {
+        field: 'startTime',
+        headerName: 'Last Started',
+        type: 'dateTime',
+        flex: 1,
+      },
+      // {field: 'lastModified', type: 'dateTime', width: 180 },
+      {
+        field: 'actions',
+        type: 'actions',
+        minWidth: 120,
+        getActions: (params: GridRowParams) => [
+          <GridActionsCellItem
+            icon={<RestartAlt />}
+            label="Restart Workflow"
+            onClick={restartWorkflow(params.id)}
+          />,
+          <GridActionsCellItem
+            icon={<StopOutlined />}
+            label="Pause Workflow"
+            onClick={pauseWorkflow(params.id)}
+          />,
+          /*<GridActionsCellItem
+            icon={ <Delete/> }
+            label="Delete Workflow"
+            onClick={deleteInstance(params.id)} />*/
+        ],
+      },
+    ],
+    [restartWorkflow, pauseWorkflow]
+  );
 
-	return (
-		<Box sx={{padding: '16px'}}>
-			<DataGrid columns={columns} rows={rows} autoHeight checkboxSelection/>
-			<Snackbar open={open} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} autoHideDuration={6000} onClose={handleClose} message={message}/>
-		</Box>
-	);
+  return (
+    <Box sx={{ display: 'flex', height: '100%' }}>
+      <Box sx={{ flexGrow: 1 }}>
+        <DataGrid
+          columns={columns}
+          rows={rows}
+          autoHeight
+          pagination
+          checkboxSelection
+          onSelectionModelChange={(selectionModel) =>
+            setSelectionModel(selectionModel)
+          }
+          selectionModel={selectionModel}
+        />
+      </Box>
+
+      <Snackbar
+        open={open}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        message={message}
+      />
+    </Box>
+  );
 }

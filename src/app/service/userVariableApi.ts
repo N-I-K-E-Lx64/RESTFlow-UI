@@ -15,13 +15,23 @@ export interface UserParameterMessage {
 const userVariableApi = restflowAPI.injectEndpoints({
   endpoints: (build) => ({
     getSuspendedWorkflows: build.query<string[], void>({
-      query: () => '/workflow/suspendedWorkflows',
+      query: () => '/suspendedWorkflows',
     }),
     getVariables: build.query<Variable[], string>({
-      query: (workflowId: string) => `/workflow/variables/${workflowId}`,
+      query: (workflowId: string) => `/variables/${workflowId}`,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ name }) => ({
+                type: 'Variable' as const,
+                name,
+              })),
+              { type: 'Variable', id: 'LIST' },
+            ]
+          : [{ type: 'Variable', id: 'List' }],
     }),
     getUserParams: build.query<UserParameterMessage[], string>({
-      query: (workflowId: string) => `/workflow/userParams/${workflowId}`,
+      query: (workflowId: string) => `/userParams/${workflowId}`,
       providesTags: (result) =>
         result
           ? [
@@ -29,20 +39,23 @@ const userVariableApi = restflowAPI.injectEndpoints({
                 type: 'UserParam' as const,
                 parameter,
               })),
-              'UserParam',
+              { type: 'UserParam', id: 'LIST' },
             ]
-          : ['UserParam'],
+          : [{ type: 'UserParam', id: 'LIST' }],
     }),
     updateUserParam: build.mutation<
       void,
       Partial<UserParameterMessage> & Pick<UserParameterMessage, 'instanceId'>
     >({
       query: ({ instanceId, ...patch }) => ({
-        url: `/workflow/setUserParameter/${instanceId}`,
+        url: `/setUserParameter/${instanceId}`,
         method: 'PATCH',
         body: patch,
       }),
-      invalidatesTags: ['UserParam'],
+      invalidatesTags: [
+        { type: 'UserParam', id: 'LIST' },
+        { type: 'Variable', id: 'LIST' },
+      ],
     }),
   }),
   overrideExisting: true,

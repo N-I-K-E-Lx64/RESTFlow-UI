@@ -45,7 +45,6 @@ const websocketApi = restflowAPI.injectEndpoints({
                     instance.wfName === data.wfName
                 )
               ) {
-                console.log('Update');
                 draft
                   .filter(
                     (instance: MonitoringInstance) =>

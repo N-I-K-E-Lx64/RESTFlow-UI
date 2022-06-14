@@ -70,8 +70,8 @@ import {
   Point,
   rectConnectorPoints,
 } from '../../util/ConnectorPoints';
-import { FormDialog } from '../../ui/FormDialog';
 import { useNavigate } from 'react-router-dom';
+import { CreateInstanceHandler } from '../../ui/CreateInstanceHandler';
 
 interface CanvasSize {
   width: number;
@@ -91,6 +91,7 @@ const INITIAL_CONTEXT_MENU: ContextMenuParams = {
   left: 0,
   context: QuickActionMenuContext.None,
 };
+
 const SNAP_BLOCK_SIZE: number = 25;
 
 export default function FlowModeling() {
@@ -113,7 +114,9 @@ export default function FlowModeling() {
     useState<ContextMenuParams>(INITIAL_CONTEXT_MENU);
 
   const stageRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<{ handleDialogOpen: () => void }>();
+  const handlerRef = useRef<{ handleShowDialog: (modelId: string) => void }>(
+    null
+  );
 
   const [updateModel] = useUpdateModelMutation();
   const [deleteModel] = useDeleteModelMutation();
@@ -475,7 +478,7 @@ export default function FlowModeling() {
       // Updates the selector position
       setSelectedElement(draggedElement);
     }
-  }, [draggedElementId, dispatch, getElement]);
+  }, [draggedElementId, dispatch, getElement, getConnector]);
 
   // Highlight the selected symbol
   useEffect(() => {
@@ -553,17 +556,6 @@ export default function FlowModeling() {
     deleteModel(model.id).then(() => navigate('/modeling'));
   };
 
-  /**
-   * Sends a request (with the instance id as a query parameter) to the server to execute the specified instance.
-   * @param instanceId Result of the dialog form that represents the instance id
-   */
-  const executeWorkflow = (instanceId: string) => {
-    fetch(`http://localhost:8080/execute/${model.id}/${instanceId}`, {
-      mode: 'no-cors',
-    }).then((response) => console.log(response));
-    //.then((message) => console.log(message));
-  };
-
   // Object containing the actions for the SpeedDial
   const actions = [
     { icon: <Save />, name: 'Save', action: handleUpdateModel },
@@ -571,7 +563,7 @@ export default function FlowModeling() {
     {
       icon: <PlayArrow />,
       name: 'Play',
-      action: () => dialogRef.current?.handleDialogOpen(),
+      action: () => handlerRef.current?.handleShowDialog(model.id),
     },
   ];
 
@@ -768,13 +760,7 @@ export default function FlowModeling() {
         </Stage>
       </Box>
 
-      <FormDialog
-        ref={dialogRef}
-        dialogTitle="Workflow Execution"
-        dialogText="Enter a name for the workflow-instance to be created"
-        buttonText="Execute"
-        dialogCallback={executeWorkflow}
-      />
+      <CreateInstanceHandler ref={handlerRef} />
     </Box>
   );
 }
