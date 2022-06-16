@@ -161,6 +161,7 @@ export const selectModel = (state: RootState) => state.model;
 export const selectModelId = (state: RootState) => state.model.id;
 export const selectVariables = (state: RootState) => state.model.variables;
 export const selectElements = (state: RootState) => state.model.elements;
+export const selectTasks = (state: RootState) => state.model.tasks;
 export const selectConnectors = (state: RootState) => state.model.connectors;
 
 export default modelSlice.reducer;

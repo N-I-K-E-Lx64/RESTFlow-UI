@@ -26,7 +26,7 @@ export const AutoComplete = ({
       <Controller
         name={fieldName}
         control={control}
-        defaultValue=""
+        defaultValue={null}
         render={({ field }) => (
           <Autocomplete
             id="resourceSelector"

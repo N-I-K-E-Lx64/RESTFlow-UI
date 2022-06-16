@@ -31,21 +31,22 @@ export enum VariableType {
   JSON,
 }
 
-type TaskParams = InvokeTaskParams | AssignTaskParams;
+export type TaskParams = InvokeTaskParams | AssignTaskParams | SwitchTaskParams;
 
-export interface Task {
+export type Task = {
   id: string;
   title: string;
   description: string;
   type: TaskType;
   params?: TaskParams;
-}
+  assignParams?: AssignTaskParams;
+};
 
 export type InvokeTaskParams = {
   type: TaskType.INVOKE_TASK;
   inputType: number;
   raml: string;
-  resource?: string;
+  resource: string;
   userParamId?: string;
   userParamType?: number;
   inputVariable?: string;
@@ -56,6 +57,26 @@ export type AssignTaskParams = {
   type: TaskType.ASSIGN_TASK;
   value?: string;
   targetVariable?: string;
+};
+
+export type SwitchTaskParams = {
+  type: TaskType.SWITCH_TASK;
+  condition: {
+    type?: number;
+    var1?: string;
+    var2?: string;
+    param1?: Parameter;
+    param2?: Parameter;
+  };
+  trueFlow?: string;
+  falseFlow?: string;
+};
+
+export type GeneralTaskParams = {
+  id: string;
+  title: string;
+  description: string;
+  type: TaskType;
 };
 
 export interface Element {
@@ -79,6 +100,11 @@ export interface Connector {
 export interface Variable {
   name: string;
   type: VariableType;
+}
+
+export interface Parameter {
+  value?: string;
+  type?: number;
 }
 
 export interface PositionUpdate {
@@ -113,3 +139,8 @@ export interface FileUpload {
   modelId: string;
   files: FormData;
 }
+
+export type FormEval = {
+  evaluateForm: () => TaskParams;
+  resetForm: (params: TaskParams) => void;
+};

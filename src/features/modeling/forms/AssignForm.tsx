@@ -1,22 +1,31 @@
 import { Stack } from '@mui/material';
 import { FormInput } from '../../../ui/FormInput';
 import { VariableSelect } from '../../../ui/VariableSelect';
-import { Variable } from '../../../model/types';
-import { useAppSelector } from '../../../app/hooks';
-import { selectVariables } from '../slices/modelSlice';
+import { AssignTaskParams, FormEval } from '../../../model/types';
+import { FormProvider, useForm } from 'react-hook-form';
+import { forwardRef, useImperativeHandle } from 'react';
 
-export default function AssignForm() {
-  const variables: Variable[] = useAppSelector(selectVariables);
+export const AssignForm = forwardRef<FormEval, any>((props, ref) => {
+  const methods = useForm<AssignTaskParams>();
+
+  useImperativeHandle(ref, () => ({
+    evaluateForm: () => {
+      return methods.getValues();
+    },
+    resetForm: (params) => {
+      const parameters = params as AssignTaskParams;
+      console.log(parameters);
+      methods.reset(parameters, { keepValues: false });
+    },
+  }));
 
   return (
-    <Stack spacing={2}>
-      <FormInput fieldName={'assignParams.paramId'} label={'Parameter Id'} />
-      <FormInput fieldName={'assignParams.value'} label={'Parameter Value'} />
-      <VariableSelect
-        fieldName="assignParams.targetVariable"
-        label="Target Variable"
-        variables={variables}
-      />
-    </Stack>
+    <FormProvider {...methods}>
+      <Stack spacing={2}>
+        <FormInput fieldName="paramId" label="Parameter Id" />
+        <FormInput fieldName="value" label="Parameter Value" />
+        <VariableSelect fieldName="variable" label="Target Variable" />
+      </Stack>
+    </FormProvider>
   );
-}
+});

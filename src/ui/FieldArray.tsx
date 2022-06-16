@@ -1,6 +1,7 @@
 import { useFieldArray, useFormContext, Controller } from 'react-hook-form';
 import { Box, IconButton, MenuItem, TextField } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
+import { parameterTypes } from '../model/Labels';
 
 export interface FieldArrayProps {
   fieldArray: string;
@@ -18,13 +19,6 @@ export const FieldArray = ({
     control,
     name: `${fieldArray}`,
   });
-
-  const variableTypes = [
-    { value: 0, label: 'String' },
-    { value: 1, label: 'Double' },
-    { value: 2, label: 'Integer' },
-    { value: 3, label: 'Json' },
-  ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -51,7 +45,7 @@ export const FieldArray = ({
             control={control}
             render={({ field }) => (
               <TextField select label="Type" {...field}>
-                {variableTypes.map((item) => (
+                {parameterTypes.map((item) => (
                   <MenuItem key={item.value} value={item.value}>
                     {item.label}
                   </MenuItem>

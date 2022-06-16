@@ -1,8 +1,15 @@
 import { Box, IconButton, Stack } from '@mui/material';
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useAppSelector } from '../../../app/hooks';
-import { selectVariables } from '../slices/modelSlice';
-import { InvokeTaskParams, Variable } from '../../../model/types';
+import { FormEval, InvokeTaskParams } from '../../../model/types';
 import { VariableSelect } from '../../../ui/VariableSelect';
 import { FormSelect } from '../../../ui/FormSelect';
 import { FileUploadDialog } from '../../../ui/FileUploadDialog';
@@ -10,26 +17,35 @@ import { UploadFile } from '@mui/icons-material';
 import { Api, selectApis } from '../slices/apiSlice';
 import { CustomSelect } from '../../../ui/CustomSelect';
 import { FieldArray } from '../../../ui/FieldArray';
-import { NestedFormProps } from './FormContainer';
 import { AutoComplete } from '../../../ui/AutoComplete';
+import { FormProvider, useForm } from 'react-hook-form';
 
-export const InvokeForm = ({ task }: NestedFormProps) => {
+export const InvokeForm = forwardRef<FormEval, any>((props, ref) => {
+  const methods = useForm<InvokeTaskParams>();
+
   const [open, setOpen] = useState<boolean>(false);
   const [inputType, setInputType] = useState<number>(0);
   const [ramlFile, setRamlFile] = useState<string>('');
   const [ramlResources, setRamlResources] = useState<string[]>([]);
   const loading = open && ramlResources.length === 0;
 
-  const variables: Variable[] = useAppSelector(selectVariables);
   const apis: Api[] = useAppSelector(selectApis);
 
-  // Extracts the params-object from the task and set the inputType and ramlFile accordingly.
-  useEffect(() => {
-    const params: InvokeTaskParams = task.params as InvokeTaskParams;
+  useImperativeHandle(ref, () => ({
+    evaluateForm: () => {
+      return methods.getValues();
+    },
+    resetForm: (params) => {
+      const parameters = params as InvokeTaskParams;
+      console.log(parameters);
 
-    setInputType(params?.inputType);
-    setRamlFile(params?.raml);
-  }, [task]);
+      // set the inputType and ramlFile correctly -> needed for the resource parsing!
+      setInputType(parameters?.inputType);
+      setRamlFile(parameters?.raml);
+
+      methods.reset(parameters, { keepValues: false });
+    },
+  }));
 
   // Extracts the resource list from the selected api/raml-file
   useEffect(() => {
@@ -82,13 +98,13 @@ export const InvokeForm = ({ task }: NestedFormProps) => {
   const dialogRef = useRef<{ handleDialogOpen: () => void }>();
 
   return (
-    <Box>
+    <FormProvider {...methods}>
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
           <Box sx={{ flex: 1 }}>
             <CustomSelect
-              fieldName={'params.raml'}
-              fieldLabel={'RAML file'}
+              fieldName="raml"
+              fieldLabel="RAML file"
               options={ramlFiles}
               onChange={handleRamlFileChange}
             />
@@ -103,7 +119,7 @@ export const InvokeForm = ({ task }: NestedFormProps) => {
         </Box>
 
         <AutoComplete
-          fieldName="params.resource"
+          fieldName="resource"
           label="Resource"
           open={open}
           loading={loading}
@@ -112,36 +128,28 @@ export const InvokeForm = ({ task }: NestedFormProps) => {
         />
 
         <FormSelect
-          fieldName={'params.inputType'}
-          label={'Input type'}
+          fieldName="inputType"
+          label="Input type"
           options={inputTypes}
           onChange={handleInputTypeChange}
         />
 
         {inputType === 0 && (
-          <VariableSelect
-            fieldName={'params.inputVariable'}
-            label={'Input variable'}
-            variables={variables}
-          />
+          <VariableSelect fieldName="inputVariable" label="Input variable" />
         )}
 
         {inputType === 1 && (
           <FieldArray
-            fieldArray="params.userParams"
+            fieldArray="userParams"
             textFieldName="userParamId"
-            textFieldLabel="Parameter-Id"
+            textFieldLabel="Parameter Id"
           />
         )}
 
-        <VariableSelect
-          fieldName={'params.targetVariable'}
-          label={'Target variable'}
-          variables={variables}
-        />
+        <VariableSelect fieldName="targetVariable" label="Target variable" />
       </Stack>
 
       <FileUploadDialog ref={dialogRef} />
-    </Box>
+    </FormProvider>
   );
-};
+});

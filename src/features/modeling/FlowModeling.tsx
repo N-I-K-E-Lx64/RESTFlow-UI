@@ -236,8 +236,8 @@ export default function FlowModeling() {
           dispatch(
             addTask({
               id,
-              title: 'Invoke Task',
-              description: `Invoke Task ${id}`,
+              title: 'Task',
+              description: `Task ${id}`,
               type: TaskType.INVOKE_TASK,
             })
           );
@@ -385,7 +385,7 @@ export default function FlowModeling() {
         width: 100,
         height: 50,
         type: ElementType.TASK,
-        text: 'Invoke Task',
+        text: 'Task',
         connectors: [],
       };
       dispatch(addElement(newElement));
@@ -393,8 +393,8 @@ export default function FlowModeling() {
       dispatch(
         addTask({
           id,
-          title: 'Invoke Task',
-          description: `Invoke Task ${id}`,
+          title: 'Task',
+          description: `Task ${id}`,
           type: TaskType.INVOKE_TASK,
         })
       );
