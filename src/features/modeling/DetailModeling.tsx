@@ -35,7 +35,7 @@ export default function DetailModeling() {
   // Update the task model, when the user changes the selection
   useEffect(() => {
     const task = model.tasks.find((modelTask) => modelTask.id === selectionId);
-    console.log(task);
+    // console.log(task);
     if (typeof task !== 'undefined') {
       setTaskModel(task);
       setTaskType(task.type);

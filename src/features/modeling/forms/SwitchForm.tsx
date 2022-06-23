@@ -1,12 +1,13 @@
-import { Box, Checkbox, Divider, FormControlLabel, Stack } from '@mui/material';
+import { Box, Divider, Stack } from '@mui/material';
 import { FormSelect } from '../../../ui/FormSelect';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { ChangeEvent, forwardRef, useImperativeHandle, useState } from 'react';
 import { VariableSelect } from '../../../ui/VariableSelect';
 import { FormInput } from '../../../ui/FormInput';
 import { conditionTypes, parameterTypes } from '../../../model/Labels';
 import { TaskSelect } from '../../../ui/TaskSelect';
 import { FormEval, SwitchTaskParams } from '../../../model/types';
 import { FormProvider, useForm } from 'react-hook-form';
+import { FormCheckbox } from '../../../ui/FormCheckbox';
 
 interface ConditionState {
   param1: boolean;
@@ -21,6 +22,18 @@ export const SwitchForm = forwardRef<FormEval, any>((props, ref) => {
     param2: false,
   });
 
+  const handleChecked = (
+    event: ChangeEvent<HTMLInputElement>,
+    fieldName: string
+  ) => {
+    const newState = event.target.checked;
+    if (fieldName === 'condition.isVariable1') {
+      setChecked({ param1: newState, param2: checked.param2 });
+    } else if (fieldName === 'condition.isVariable2') {
+      setChecked({ param1: checked.param1, param2: newState });
+    }
+  };
+
   useImperativeHandle(ref, () => ({
     evaluateForm: () => {
       return methods.getValues();
@@ -28,6 +41,11 @@ export const SwitchForm = forwardRef<FormEval, any>((props, ref) => {
     resetForm: (params) => {
       const parameters = params as SwitchTaskParams;
       methods.reset(parameters, { keepValues: false });
+
+      setChecked({
+        param1: parameters.condition.isVariable1,
+        param2: parameters.condition.isVariable2,
+      });
     },
   }));
 
@@ -41,19 +59,10 @@ export const SwitchForm = forwardRef<FormEval, any>((props, ref) => {
         />
 
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={checked.param1}
-                onChange={(event) =>
-                  setChecked({
-                    param1: event.target.checked,
-                    param2: checked.param2,
-                  })
-                }
-              />
-            }
-            label="Variable"
+          <FormCheckbox
+            fieldName={'condition.isVariable1'}
+            label={'Variable'}
+            onChange={handleChecked}
           />
 
           {checked.param1 && (
@@ -75,19 +84,10 @@ export const SwitchForm = forwardRef<FormEval, any>((props, ref) => {
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={checked.param2}
-                onChange={(event) =>
-                  setChecked({
-                    param1: checked.param1,
-                    param2: event.target.checked,
-                  })
-                }
-              />
-            }
-            label="Variable"
+          <FormCheckbox
+            fieldName={'condition.isVariable2'}
+            label={'Variable'}
+            onChange={handleChecked}
           />
 
           {checked.param2 && (

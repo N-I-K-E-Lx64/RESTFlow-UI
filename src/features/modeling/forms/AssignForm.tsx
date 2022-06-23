@@ -14,7 +14,6 @@ export const AssignForm = forwardRef<FormEval, any>((props, ref) => {
     },
     resetForm: (params) => {
       const parameters = params as AssignTaskParams;
-      console.log(parameters);
       methods.reset(parameters, { keepValues: false });
     },
   }));

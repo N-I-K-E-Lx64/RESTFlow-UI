@@ -77,12 +77,16 @@ export const modelSlice = createSlice({
       }
     },
     assignConnector: (state, action: PayloadAction<ConnectorAssignUpdate>) => {
-      const { elementId, connectorId } = action.payload;
+      const { elementId, connectorId, elementType } = action.payload;
       const index = state.elements.findIndex(
         (element: Element) => element.id === elementId
       );
       if (index !== -1) {
-        state.elements[index].connectors.push(connectorId);
+        if (elementType === 'incoming') {
+          state.elements[index].connectors.incoming = connectorId;
+        } else if (elementType === 'outgoing') {
+          state.elements[index].connectors.outgoing.push(connectorId);
+        }
       }
     },
     addConnector: (state, action: PayloadAction<Connector>) => {
@@ -113,14 +117,15 @@ export const modelSlice = createSlice({
         (element: Element) => element.id === target
       );
       if (sourceIndex !== -1 && targetIndex !== -1) {
-        const sourceConnectorIndex = state.elements[
-          sourceIndex
-        ].connectors.findIndex((connectorId) => connectorId === id);
+        state.elements[sourceIndex].connectors.incoming = '';
+
         const targetConnectorIndex = state.elements[
           targetIndex
-        ].connectors.findIndex((connectorId) => connectorId === id);
-        state.elements[sourceIndex].connectors.splice(sourceConnectorIndex, 1);
-        state.elements[sourceIndex].connectors.splice(targetConnectorIndex, 1);
+        ].connectors.outgoing.findIndex((connectorId) => connectorId === id);
+        state.elements[sourceIndex].connectors.outgoing.splice(
+          targetConnectorIndex,
+          1
+        );
       }
     },
     addTask: (state, action: PayloadAction<Task>) => {

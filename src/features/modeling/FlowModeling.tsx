@@ -216,7 +216,10 @@ export default function FlowModeling() {
               width: 50,
               height: 50,
               type: addMode,
-              connectors: [],
+              connectors: {
+                incoming: '',
+                outgoing: [],
+              },
             })
           );
           break;
@@ -230,7 +233,10 @@ export default function FlowModeling() {
               width: 100,
               height: 50,
               type: ElementType.TASK,
-              connectors: [],
+              connectors: {
+                incoming: '',
+                outgoing: [],
+              },
             })
           );
           dispatch(
@@ -306,9 +312,15 @@ export default function FlowModeling() {
 
         // Assign the connector to the source and target element
         dispatch(
-          assignConnector({ elementId: selectedElement.id, connectorId })
+          assignConnector({
+            elementId: selectedElement.id,
+            connectorId,
+            elementType: 'outgoing',
+          })
         );
-        dispatch(assignConnector({ elementId, connectorId }));
+        dispatch(
+          assignConnector({ elementId, connectorId, elementType: 'incoming' })
+        );
 
         // Deactivate Connect Mode
         setConnectMode(false);
@@ -386,7 +398,10 @@ export default function FlowModeling() {
         height: 50,
         type: ElementType.TASK,
         text: 'Task',
-        connectors: [],
+        connectors: {
+          incoming: '',
+          outgoing: [],
+        },
       };
       dispatch(addElement(newElement));
 
@@ -412,8 +427,20 @@ export default function FlowModeling() {
       );
 
       // Assign the connector to the source and target element
-      dispatch(assignConnector({ elementId: selectedElement.id, connectorId }));
-      dispatch(assignConnector({ elementId: newElement.id, connectorId }));
+      dispatch(
+        assignConnector({
+          elementId: selectedElement.id,
+          connectorId,
+          elementType: 'outgoing',
+        })
+      );
+      dispatch(
+        assignConnector({
+          elementId: newElement.id,
+          connectorId,
+          elementType: 'incoming',
+        })
+      );
     }
   };
 
@@ -421,12 +448,16 @@ export default function FlowModeling() {
    * Removes the selected element/connector from the model
    */
   const deleteElement = () => {
+    console.log(selectedElement, selectedConnector);
     if (
       contextMenu.context === QuickActionMenuContext.Element &&
       selectedElement !== null
     ) {
       // Removes the associated connectors!
-      selectedElement.connectors.forEach((connectorId) =>
+      dispatch(
+        removeConnector(getConnector(selectedElement.connectors.incoming)!)
+      );
+      selectedElement.connectors.outgoing.forEach((connectorId) =>
         dispatch(removeConnector(getConnector(connectorId)!))
       );
       // Remove the element!
@@ -449,36 +480,33 @@ export default function FlowModeling() {
   // Connectors must be automatically adjusted after an element has been dragged
   useEffect(() => {
     // Updates the connectors accordingly
+    // console.log(draggedElementId);
     const draggedElement = getElement(draggedElementId);
     if (draggedElement !== null) {
-      draggedElement.connectors.forEach((connectorId: string) => {
+      // Compute the new line points for the source connector
+      const sourceConnector = getConnector(draggedElement.connectors.incoming);
+      if (sourceConnector !== null) {
+        const sourceElement = getElement(sourceConnector!.source);
+        const newPoints = calcConnectorPoints(sourceElement!, draggedElement);
+        dispatch(
+          updateConnector({ id: sourceConnector!.id, points: newPoints })
+        );
+      }
+
+      draggedElement.connectors.outgoing.forEach((connectorId: string) => {
         const connector = getConnector(connectorId);
-
-        let source: Element | null;
-        let target: Element | null;
-
-        // Determines the source and target of the connector
-        if (connector!.source === draggedElementId) {
-          source = draggedElement;
-          target = getElement(connector!.target);
-        } else {
-          source = getElement(connector!.source);
-          target = draggedElement;
-        }
-
-        // Computes the new line points and store them in the state
-        if (source !== null && target !== null) {
-          const newPoints = calcConnectorPoints(source, target);
-          dispatch(updateConnector({ id: connectorId, points: newPoints }));
-        }
+        const targetElement = getElement(connector!.target);
+        const newPoints = calcConnectorPoints(draggedElement, targetElement!);
+        dispatch(updateConnector({ id: connectorId, points: newPoints }));
       });
+
       // Reset the dragged Element
       setDraggedElementId('');
 
       // Updates the selector position
       setSelectedElement(draggedElement);
     }
-  }, [draggedElementId, dispatch, getElement, getConnector]);
+  }, [draggedElementId, dispatch]);
 
   // Highlight the selected symbol
   useEffect(() => {

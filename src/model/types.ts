@@ -67,6 +67,8 @@ export type SwitchTaskParams = {
     var2?: string;
     param1?: Parameter;
     param2?: Parameter;
+    isVariable1: boolean;
+    isVariable2: boolean;
   };
   trueFlow?: string;
   falseFlow?: string;
@@ -87,7 +89,10 @@ export interface Element {
   height: number;
   type: ElementType;
   text?: string;
-  connectors: string[];
+  connectors: {
+    incoming: string;
+    outgoing: string[];
+  };
 }
 
 export interface Connector {
@@ -116,6 +121,7 @@ export interface PositionUpdate {
 export interface ConnectorAssignUpdate {
   elementId: string;
   connectorId: string;
+  elementType: 'incoming' | 'outgoing';
 }
 
 export interface ConnectorUpdate {
