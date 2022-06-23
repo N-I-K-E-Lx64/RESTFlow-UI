@@ -45,7 +45,7 @@ export function Dashboard() {
       <Grid container spacing={2}>
         {models?.map((model, index) => (
           <Grid item xs={2} key={index}>
-            <Card sx={{ maxWidth: 300 }}>
+            <Card sx={{ maxWidth: 300, minWidth: 200 }}>
               <CardActionArea onClick={(e) => primaryCardAction(e, model)}>
                 <CardHeader
                   avatar={<Avatar>{model.name.charAt(0).toUpperCase()}</Avatar>}

@@ -46,7 +46,7 @@ export type InvokeTaskParams = {
   type: TaskType.INVOKE_TASK;
   inputType: number;
   raml: string;
-  resource: string;
+  resource: string | null;
   userParamId?: string;
   userParamType?: number;
   inputVariable?: string;

@@ -1,24 +1,10 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Grid,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import {
   useGetUserParamsQuery,
-  useGetVariablesQuery,
   UserParameterMessage,
   useUpdateUserParamMutation,
-  Variable,
 } from '../../app/service/userVariableApi';
 import { useParams } from 'react-router-dom';
-import { TopicOutlined } from '@mui/icons-material';
 import {
   Controller,
   SubmitHandler,
@@ -26,12 +12,11 @@ import {
   useForm,
 } from 'react-hook-form';
 import React, { useEffect } from 'react';
+import { VariableView } from '../monitoring/VariableView';
 
 export function UserInput() {
   const { instanceId } = useParams<{ instanceId: string }>();
 
-  const { data: variables, isLoading: isLoadingVariables } =
-    useGetVariablesQuery(instanceId!);
   const { data: userParams, isLoading: isLoadingUserParams } =
     useGetUserParamsQuery(instanceId!);
 
@@ -40,10 +25,7 @@ export function UserInput() {
   const { control, handleSubmit } = useForm();
   const { fields, replace } = useFieldArray({ control, name: 'params' });
 
-  console.log(variables);
-
   useEffect(() => {
-    console.log(userParams);
     const userParamValues = userParams?.map((param) => param.value);
     if (typeof userParamValues !== 'undefined') replace(userParamValues);
   }, [replace, userParams]);
@@ -55,7 +37,6 @@ export function UserInput() {
         parameter: param.parameter,
         value: data.params[index].value,
       };
-      console.log(param);
       updateUserParam({ ...param });
     });
   };
@@ -71,7 +52,7 @@ export function UserInput() {
     return `params.${index}`;
   };
 
-  if (isLoadingVariables || isLoadingUserParams) {
+  if (isLoadingUserParams) {
     return (
       <Typography variant="h2" align="center">
         Loading ...
@@ -115,40 +96,22 @@ export function UserInput() {
               )}
             />
           ))}
-          <Button variant="contained" type="submit" color="primary">
-            Send
-          </Button>
+
+          {fields.length > 0 && (
+            <Button variant="contained" type="submit" color="primary">
+              Send
+            </Button>
+          )}
+
+          {fields.length === 0 && (
+            <Typography variant="h4" gutterBottom>
+              Nothing to do!
+            </Typography>
+          )}
         </Stack>
       </Box>
       <Box sx={{ flexGrow: 1, padding: '8px' }}>
-        <Grid container spacing={2}>
-          {variables?.map((prop: Variable) => (
-            <Grid item xs={6} key={prop.name}>
-              <Card>
-                <CardHeader
-                  avatar={
-                    <Avatar aria-label="icon">
-                      <TopicOutlined />
-                    </Avatar>
-                  }
-                  title={prop.name}
-                  subheader={prop.type + ' -Variable'}
-                />
-                <CardContent>
-                  {prop.value !== 'null' && (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      style={{ whiteSpace: 'pre-wrap' }}
-                    >
-                      {prop.value}
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <VariableView />
       </Box>
     </Box>
   );

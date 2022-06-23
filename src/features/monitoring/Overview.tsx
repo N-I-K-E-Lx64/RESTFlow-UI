@@ -9,11 +9,14 @@ import {
   GridSelectionModel,
 } from '@mui/x-data-grid';
 import { Box, Chip, Snackbar } from '@mui/material';
-import { RestartAlt, StopOutlined } from '@mui/icons-material';
+import { Preview, RestartAlt, StopOutlined } from '@mui/icons-material';
 import {
   MonitoringInstance,
   useGetMessagesQuery,
 } from '../../app/service/websocketApi';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../../app/hooks';
+import { restflowAPI } from '../../app/service/restflowAPI';
 
 enum WorkflowStatus {
   INITIATED = 'initiated',
@@ -24,6 +27,9 @@ enum WorkflowStatus {
 }
 
 export function MonitoringGrid() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [open, setOpen] = React.useState(false);
   const [message, setMessage] = React.useState('');
   const [selectionModel, setSelectionModel] =
@@ -32,7 +38,6 @@ export function MonitoringGrid() {
   const { data, isLoading } = useGetMessagesQuery();
 
   const rows: GridRowModel[] = useMemo(() => {
-    console.log(data);
     if (typeof data !== 'undefined' && isLoading === false) {
       return data.map((instance: MonitoringInstance) =>
         Object.assign({ id: instance.wfName }, instance)
@@ -54,6 +59,14 @@ export function MonitoringGrid() {
   const restartWorkflow = useCallback(
     (id: GridRowId) => () => {
       sendCommand(id, 'restart');
+
+      // Invalidate Tags to trigger a refetch
+      dispatch(
+        restflowAPI.util.invalidateTags([
+          { type: 'Variable', id: 'LIST' },
+          { type: 'UserParam', id: 'LIST' },
+        ])
+      );
     },
     []
   );
@@ -65,9 +78,12 @@ export function MonitoringGrid() {
     []
   );
 
-  /*const deleteInstance = useCallback((id: GridRowId) => () => {
-    sendCommand(id, "delete");
-  }, []);*/
+  const showResults = useCallback(
+    (id: GridRowId) => () => {
+      navigate(`/variables/${id}`);
+    },
+    [navigate]
+  );
 
   /**
    * Send some messages to the server
@@ -137,14 +153,15 @@ export function MonitoringGrid() {
             label="Pause Workflow"
             onClick={pauseWorkflow(params.id)}
           />,
-          /*<GridActionsCellItem
-            icon={ <Delete/> }
+          <GridActionsCellItem
+            icon={<Preview />}
             label="Delete Workflow"
-            onClick={deleteInstance(params.id)} />*/
+            onClick={showResults(params.id)}
+          />,
         ],
       },
     ],
-    [restartWorkflow, pauseWorkflow]
+    [restartWorkflow, pauseWorkflow, showResults]
   );
 
   return (

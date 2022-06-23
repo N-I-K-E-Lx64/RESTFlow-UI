@@ -70,6 +70,9 @@ export const FileUploadDialog = forwardRef((a, ref) => {
         <DialogTitle>Test</DialogTitle>
         <DialogContent>
           <DialogContentText>Upload RAML File</DialogContentText>
+          <Typography variant="body2">
+            Note that library files should be uploaded first!
+          </Typography>
           <div {...getRootProps({ className: 'dropzone' })}>
             <input {...getInputProps()} />
             {isDragActive ? (
@@ -78,7 +81,7 @@ export const FileUploadDialog = forwardRef((a, ref) => {
               </Typography>
             ) : (
               <Typography variant="body1" gutterBottom>
-                Drag 'n' drop some files here, or click to select files
+                Drag 'n' drop some files here, or click to select files.
               </Typography>
             )}
           </div>

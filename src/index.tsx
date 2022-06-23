@@ -6,12 +6,13 @@ import App from './App';
 import { store } from './app/store';
 import * as serviceWorker from './serviceWorker';
 import { UserInput } from './features/user-input/UserInput';
-import { MonitoringGrid } from './features/monitoring-grid/Overview';
+import { MonitoringGrid } from './features/monitoring/Overview';
 import { UserInputTabs } from './features/user-input/UserInputTabs';
 import { Dashboard } from './features/dashboard/Dashboard';
 import ModelingTool from './features/modeling/ModelingTool';
 import ModelTabs from './features/modeling/ModelTabs';
 import { createRoot } from 'react-dom/client';
+import { VariableView } from './features/monitoring/VariableView';
 
 const container = document.getElementById('root');
 const root = createRoot(container!);
@@ -29,6 +30,7 @@ root.render(
             <Route path="user-input" element={<UserInputTabs />}>
               <Route path=":instanceId" element={<UserInput />} />
             </Route>
+            <Route path="variables/:instanceId" element={<VariableView />} />
           </Route>
         </Routes>
         <App />

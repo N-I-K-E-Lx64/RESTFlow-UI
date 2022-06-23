@@ -8,6 +8,8 @@ import React, {
 } from 'react';
 import { Box } from '@mui/material';
 import axios from 'axios';
+import { useAppDispatch } from '../app/hooks';
+import { restflowAPI } from '../app/service/restflowAPI';
 
 const INITIAL_SNACKBAR: SnackbarProps = {
   text: '',
@@ -18,6 +20,7 @@ const INITIAL_SNACKBAR: SnackbarProps = {
  * Wrapper component for the create-instance workflow, in which the FormDialog and a Snackbar component is used
  */
 export const CreateInstanceHandler = forwardRef((props, ref) => {
+  const dispatch = useAppDispatch();
   const [snackbar, setSnackbar] = useState<SnackbarProps>(INITIAL_SNACKBAR);
   const [modelId, setModelId] = useState<string>('');
 
@@ -41,6 +44,13 @@ export const CreateInstanceHandler = forwardRef((props, ref) => {
       .then((response) => {
         setSnackbar({ text: response.data, severity: 'success' });
         snackbarRef.current?.handleOpen();
+
+        // Invalidate Tags to trigger a refetch
+        dispatch(
+          restflowAPI.util.invalidateTags([
+            { type: 'SuspendedWorkflows', id: 'LIST' },
+          ])
+        );
       })
       .catch((error) => {
         setSnackbar({ text: error.response.data, severity: 'error' });

@@ -21,7 +21,9 @@ import { AutoComplete } from '../../../ui/AutoComplete';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export const InvokeForm = forwardRef<FormEval, any>((props, ref) => {
-  const methods = useForm<InvokeTaskParams>();
+  const methods = useForm<InvokeTaskParams>({
+    defaultValues: { resource: null },
+  });
 
   const [open, setOpen] = useState<boolean>(false);
   const [inputType, setInputType] = useState<number>(0);
@@ -80,6 +82,9 @@ export const InvokeForm = forwardRef<FormEval, any>((props, ref) => {
 
   const handleRamlFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     setRamlFile(event.target.value);
+    setRamlResources([]);
+    // Reset the resource field to prevent default-value-warnings
+    methods.resetField('resource');
   };
 
   /**

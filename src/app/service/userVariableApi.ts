@@ -16,6 +16,7 @@ const userVariableApi = restflowAPI.injectEndpoints({
   endpoints: (build) => ({
     getSuspendedWorkflows: build.query<string[], void>({
       query: () => '/suspendedWorkflows',
+      providesTags: () => [{ type: 'SuspendedWorkflows', id: 'LIST' }],
     }),
     getVariables: build.query<Variable[], string>({
       query: (workflowId: string) => `/variables/${workflowId}`,
