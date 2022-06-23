@@ -1,18 +1,18 @@
-import { Controller, useFormContext } from 'react-hook-form';
 import { Box, MenuItem, TextField } from '@mui/material';
+import { Controller, useFormContext } from 'react-hook-form';
+import { Task } from '../model/types';
 import { useAppSelector } from '../app/hooks';
-import { selectVariables } from '../features/modeling/slices/modelSlice';
-import { Variable } from '../model/types';
+import { selectTasks } from '../features/modeling/slices/modelSlice';
 
-export interface VariableSelectProps {
+export interface TaskSelectProps {
   fieldName: string;
   label: string;
 }
 
-export const VariableSelect = ({ fieldName, label }: VariableSelectProps) => {
+export const TaskSelect = ({ fieldName, label }: TaskSelectProps) => {
   const { control } = useFormContext();
 
-  const variables: Variable[] = useAppSelector(selectVariables);
+  const tasks: Task[] = useAppSelector(selectTasks);
 
   return (
     <Box>
@@ -22,9 +22,9 @@ export const VariableSelect = ({ fieldName, label }: VariableSelectProps) => {
         defaultValue=""
         render={({ field }) => (
           <TextField select fullWidth label={label} {...field}>
-            {variables.map((variable, index) => (
-              <MenuItem key={index} value={variable.name}>
-                {variable.name}
+            {tasks.map((task, index) => (
+              <MenuItem key={index} value={task.id}>
+                {task.title}
               </MenuItem>
             ))}
           </TextField>

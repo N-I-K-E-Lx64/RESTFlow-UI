@@ -1,15 +1,14 @@
 import React from 'react';
 import './App.css';
-import ClippedDrawer from "./ui/ClippedDrawer";
-import {Box} from "@mui/material";
+import { Box } from '@mui/material';
+import ClippedDrawer from './ui/ClippedDrawer';
 
 function App() {
-
-	return (
-		<Box>
-			<ClippedDrawer />
-		</Box>
-	);
+  return (
+    <Box>
+      <ClippedDrawer />
+    </Box>
+  );
 }
 
 export default App;

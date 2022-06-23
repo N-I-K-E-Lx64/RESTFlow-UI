@@ -2,19 +2,21 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { Box, MenuItem, TextField } from '@mui/material';
 import { ChangeEvent } from 'react';
 
-export interface FormSelectProps {
+export interface CustomSelectProps {
   fieldName: string;
-  label: string;
-  options: { value: number; label: string }[];
+  fieldLabel: string;
+  options: string[];
+  disabled?: boolean;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function FormSelect({
-  label,
+export const CustomSelect = ({
   fieldName,
+  fieldLabel,
   options,
+  disabled,
   onChange,
-}: FormSelectProps) {
+}: CustomSelectProps) => {
   const { control } = useFormContext();
 
   return (
@@ -22,21 +24,22 @@ export function FormSelect({
       <Controller
         name={fieldName}
         control={control}
-        defaultValue={0}
+        defaultValue=""
         render={({ field }) => (
           <TextField
             select
             fullWidth
-            label={label}
+            label={fieldLabel}
+            disabled={disabled}
             {...field}
             onChange={(value: ChangeEvent<HTMLInputElement>) => {
               field.onChange(value);
               if (typeof onChange !== 'undefined') onChange(value);
             }}
           >
-            {options.map((item) => (
-              <MenuItem key={item.value} value={item.value}>
-                {item.label}
+            {options.map((item, index) => (
+              <MenuItem key={index} value={item}>
+                {item}
               </MenuItem>
             ))}
           </TextField>
@@ -44,4 +47,4 @@ export function FormSelect({
       />
     </Box>
   );
-}
+};

@@ -1,123 +1,118 @@
+import { Box, Tab, Tabs, Typography } from '@mui/material';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { Add } from '@mui/icons-material';
+import { v4 as uuidv4 } from 'uuid';
 import {
-	Box, Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
-	Tab,
-	Tabs,
-	TextField, Typography
-} from "@mui/material";
-import {Link, Outlet, useNavigate} from "react-router-dom";
-import {SyntheticEvent, useEffect, useState} from "react";
-import {Add} from "@mui/icons-material";
-import {useAppDispatch, useAppSelector} from "../../app/hooks";
-import {setActiveModel, selectModel} from "./modelSlice";
-import {useAddModelMutation, useGetModelsQuery} from "../../app/service/modelApi";
-import {v4 as uuidv4} from "uuid";
-import {Controller, SubmitHandler, useForm} from "react-hook-form";
-import {Model} from "../../model/types";
+  useAddModelMutation,
+  useGetModelsQuery,
+} from '../../app/service/modelApi';
+import { Model } from '../../model/types';
+import { FormDialog } from '../../ui/FormDialog';
 
-interface ModelNameInput {
-	modelName: string
-}
+export default function ModelTabs() {
+  const navigate = useNavigate();
+  const [tabIndex, setTabIndex] = useState<number | boolean>(false);
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
 
-export function ModelTabs() {
-	const dispatch = useAppDispatch();
-	const navigate = useNavigate();
-	const { handleSubmit, control } = useForm<ModelNameInput>();
-	const [open, setOpen] = useState<boolean>(false);
-	const [currentModel, setCurrentModel] = useState<number>(0);
-	const selectedModel = useAppSelector(selectModel);
+  const { data: models, error, isLoading } = useGetModelsQuery();
+  const [addModel] = useAddModelMutation();
 
-	const { data: models, error, isLoading, isFetching } = useGetModelsQuery();
-	const [addModel] = useAddModelMutation();
+  const dialogRef = useRef<{ handleDialogOpen: () => void }>();
 
-	console.log(isFetching);
+  /**
+   * Handles the tab change. When the user selects a different tab the respective model is derived
+   * and the "activeModel"-state is updated accordingly.
+   * @param event React event
+   * @param selectedIndex The index of the tab the user selected
+   */
+  const handleChange = (event: SyntheticEvent, selectedIndex: number) => {
+    const selectedModel = models?.at(selectedIndex);
+    if (typeof selectedModel !== 'undefined') {
+      // Set the tab index
+      setTabIndex(selectedIndex);
+      // Set the model
+      setSelectedModel(selectedModel);
+      navigate(selectedModel.id);
+    }
+  };
 
-	const handleDialogOpen = () => {
-		setOpen(true)
-	};
+  /**
+   * Creates a dummy model with the provided name and navigate to it
+   * @param modelName Name for the new model
+   */
+  const createModel = (modelName: string) => {
+    const modelId = uuidv4();
+    const newModel: Model = {
+      id: modelId,
+      name: modelName,
+      description: '',
+      variables: [{ name: 'Result', type: 3 }],
+      elements: [],
+      connectors: [],
+      tasks: [],
+    };
 
-	const handleDialogClose = () => {
-		setOpen(false);
-	};
+    addModel(newModel).then(() => {
+      setSelectedModel(newModel);
+      // Navigate to the created model
+      navigate(`${modelId}`);
+    });
+  };
 
-	const handleChange = (event: SyntheticEvent, selectedIndex: number) => {
-		setCurrentModel(selectedIndex);
-		if (typeof models?.[selectedIndex] !== "undefined") {
-			dispatch(setActiveModel(models?.[selectedIndex]));
-		}
-	};
+  // If the models array is empty reset the two state values to their initial values
+  useEffect(() => {
+    if (models?.length === 0) {
+      setTabIndex(false);
+      setSelectedModel(null);
+    } else {
+      const index = models?.findIndex(
+        (model) => model.name === selectedModel?.name
+      );
+      if (typeof index !== 'undefined' && index !== -1) {
+        setTabIndex(index);
+      }
+    }
+  }, [models, selectedModel]);
 
-	// Creates a dummy model with the provided name and navigate to it
-	const onSubmit: SubmitHandler<ModelNameInput> = (data) => {
-		console.log(data);
-		const modelId = uuidv4();
-		const dummyModel: Model = { id: modelId, name: data.modelName, description: "", variables: [], elements: [], connectors: [], tasks: [] };
-		dispatch(setActiveModel(dummyModel));
-		addModel(dummyModel).then(() => {
-			// Deactivate the dialog
-			setOpen(false);
+  if (isLoading) {
+    return (
+      <Typography variant="h2" gutterBottom>
+        Loading...
+      </Typography>
+    );
+  }
 
-			// Navigate to the created model
-			navigate(`${modelId}`);
-		});
-	};
+  if (error) {
+    return (
+      <Typography variant="h2" gutterBottom>
+        Error
+      </Typography>
+    );
+  }
 
-	// When a new model is created set the tab-value accordingly
-	useEffect(() => {
-		const index = models?.findIndex((model: Model) => model.name === selectedModel.name);
-		if (index !== -1 && typeof index !== "undefined") {
-			setCurrentModel(index);
-		}
-	}, [models, selectedModel]);
+  return (
+    <Box sx={{ paddingBottom: 8 }}>
+      <Tabs value={tabIndex} onChange={handleChange} selectionFollowsFocus>
+        {models?.map((prop: Model, index: number) => (
+          <Tab label={prop.name} value={index} key={index} />
+        ))}
+        <Tab
+          icon={<Add />}
+          aria-label="Create Workflow Model"
+          onClick={() => dialogRef.current?.handleDialogOpen()}
+        />
+      </Tabs>
 
-	if (isLoading) {
-		return (<Typography variant="h2" gutterBottom>Loading...</Typography>);
-	}
+      <Outlet />
 
-	if (error) {
-		return (<Typography variant="h2" gutterBottom>Error</Typography>);
-	}
-
-	// TODO : Use History.push instead of navigation tabs!
-	return (
-		<Box sx={{paddingBottom: 8}}>
-			<Tabs value={currentModel} onChange={handleChange} selectionFollowsFocus>
-				{ models?.map((prop: Model, index: number) => (
-					<Tab label={prop.name} value={index} to={`${prop.id}`} component={Link} key={index} />
-				))}
-				<Tab icon={<Add/>} aria-label="Create Workflow Model" onClick={handleDialogOpen}/>
-			</Tabs>
-
-			<Outlet/>
-
-			<Dialog open={open} onClose={handleDialogClose}>
-				<form onSubmit={handleSubmit(onSubmit)}>
-					<DialogTitle>Model Creation</DialogTitle>
-					<DialogContent>
-						<DialogContentText>
-							Enter a model name
-						</DialogContentText>
-
-						<Controller
-							name="modelName"
-							control={control}
-							defaultValue={""}
-							rules={{ required: true }}
-							render={({ field }) => (
-								<TextField autoFocus margin="dense" label="Model Name" variant="standard" {...field} />
-							)}
-						/>
-					</DialogContent>
-					<DialogActions>
-						<Button onClick={handleDialogClose}>Cancel</Button>
-						<Button type="submit">Create</Button>
-					</DialogActions>
-				</form>
-			</Dialog>
-		</Box>
-	)
+      <FormDialog
+        ref={dialogRef}
+        dialogTitle="Model Creation"
+        dialogText="Enter a name for the model"
+        buttonText="Create"
+        dialogCallback={createModel}
+      />
+    </Box>
+  );
 }
